@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -8,50 +8,80 @@ import {
   TouchableOpacity,
   FlatList,
   SafeAreaView,
+  Alert,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import * as VideoThumbnails from "expo-video-thumbnails";
 
 export default function Step2(props) {
   const { navigation } = props;
-  const videos = [
-    {
-      id: 1,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-    {
-      id: 2,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-    {
-      id: 3,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-    {
-      id: 4,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-    {
-      id: 5,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-  ];
+  const [counter, setCounter] = useState(0);
+  const [videos, setVideos] = useState([]);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== "web") {
+        const {
+          status,
+        } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          setPermissionGranted(false);
+        } else {
+          setPermissionGranted(true);
+        }
+      }
+    })();
+  }, []);
   _onChangeText = (text) => {
     console.log(text);
   };
+  const generateThumbnail = async (videoURI) => {
+    try {
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoURI, {
+        time: 15000,
+      });
+      return uri;
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+  millisToMinutesAndSeconds = (millis) => {
+    var minutes = Math.floor(millis / 60000);
+    var seconds = ((millis % 60000) / 1000).toFixed(0);
+    return minutes + ":" + (seconds < 10 ? "0" : "") + seconds + " min";
+  };
+
+  const pickImage = async () => {
+    if (!permissionGranted) {
+      Alert.alert("Sorry, we need camera roll permissions to make this work!");
+    } else {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      console.log(result);
+
+      if (!result.cancelled) {
+        let duration = millisToMinutesAndSeconds(result.duration);
+        let videoUri = result.uri;
+        let thumbnail = await generateThumbnail(videoUri);
+        let title = videoUri.replace(/^.*[\\\/]/, "");
+        let videoData = {
+          id: counter,
+          thumbnail: thumbnail,
+          title: title,
+          duration: duration,
+          videoURL: videoUri,
+        };
+        setCounter(counter + 1);
+        setVideos([...videos, videoData]);
+      }
+    }
+  };
+
   const totalSteps = 6;
   const currentIndex = 1;
 
@@ -75,6 +105,13 @@ export default function Step2(props) {
     }
     return indicators;
   };
+  deleteFromArray = (id) => {
+    var filtered = videos.filter(function (el) {
+      return el.id != id;
+    });
+    setVideos([...filtered]);
+  };
+
   getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
@@ -103,70 +140,80 @@ export default function Step2(props) {
 
     return Header;
   };
-  const Item = ({ item, onPress }) => (
-    <View
-      style={{
-        flexDirection: "row",
-        width: "100%",
-        justifyContent: "space-between",
-        marginBottom: 30,
-        backgroundColor: "#3A4254",
-        borderRadius: 15,
-      }}
-    >
-      <View>
-        <Image
-          style={{ width: 150, height: 100, borderRadius: 15 }}
-          source={{ uri: item.thumbnail }}
-        />
-        <TouchableOpacity
-          style={{ marginTop: 30, alignSelf: "center", position: "absolute" }}
-        >
-          <AntDesign color="white" name="playcircleo" size={35} />
-        </TouchableOpacity>
-      </View>
-      <View style={{ flexDirection: "column", marginTop: 5 }}>
-        <Text style={styles.Step2TabText}>{item.title}</Text>
-        <Text style={{ color: "gray" }}>{item.duration}</Text>
-      </View>
-      <View style={{ flexDirection: "column", marginRight: 10, marginTop: 10 }}>
-        <TouchableOpacity
-          style={{
-            height: 24,
-            width: 24,
-            backgroundColor: "#03b5f7",
-            borderRadius: 20,
-            justifyContent: "center",
-          }}
-        >
-          <Feather
-            style={{ alignSelf: "center" }}
-            name="edit"
-            color="white"
-            size={15}
+  const Item = ({ item, onPress }) => {
+    let titleTrimmed = item.title;
+    if (item.title.length > 8)
+      titleTrimmed = item.title.substring(0, 8) + "...";
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          width: "100%",
+          justifyContent: "space-between",
+          marginBottom: 30,
+          backgroundColor: "#3A4254",
+          borderRadius: 15,
+        }}
+      >
+        <View>
+          <Image
+            style={{ width: 150, height: 100, borderRadius: 15 }}
+            source={{ uri: item.thumbnail }}
           />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            marginTop: 10,
-            height: 24,
-            width: 24,
-            borderColor: "#03b5f7",
-            borderWidth: 1,
-            borderRadius: 20,
-            justifyContent: "center",
-          }}
+          <TouchableOpacity
+            style={{ marginTop: 30, alignSelf: "center", position: "absolute" }}
+          >
+            <AntDesign color="white" name="playcircleo" size={35} />
+          </TouchableOpacity>
+        </View>
+        <View style={{ flexDirection: "column", marginTop: 5, marginLeft: 5 }}>
+          <Text style={styles.Step2TabText}>{titleTrimmed}</Text>
+          <Text style={{ color: "gray" }}>{item.duration}</Text>
+        </View>
+        <View
+          style={{ flexDirection: "column", marginRight: 10, marginTop: 10 }}
         >
-          <AntDesign
-            style={{ alignSelf: "center" }}
-            name="delete"
-            color="#03b5f7"
-            size={15}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              height: 24,
+              width: 24,
+              backgroundColor: "#03b5f7",
+              borderRadius: 20,
+              justifyContent: "center",
+            }}
+          >
+            <Feather
+              style={{ alignSelf: "center" }}
+              name="edit"
+              color="white"
+              size={15}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              marginTop: 10,
+              height: 24,
+              width: 24,
+              borderColor: "#03b5f7",
+              borderWidth: 1,
+              borderRadius: 20,
+              justifyContent: "center",
+            }}
+            onPress={() => {
+              deleteFromArray(item.id);
+            }}
+          >
+            <AntDesign
+              style={{ alignSelf: "center" }}
+              name="delete"
+              color="#03b5f7"
+              size={15}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
   const renderItem = ({ item }) => {
     return <Item item={item} onPress={() => {}} />;
   };
@@ -186,7 +233,10 @@ export default function Step2(props) {
             <View>
               <View style={styles.Step2Tab}>
                 <Text style={styles.Step2TabText}>Videos {"&"} Photos</Text>
-                <TouchableOpacity style={{ alignSelf: "center" }}>
+                <TouchableOpacity
+                  onPress={pickImage}
+                  style={{ alignSelf: "center" }}
+                >
                   <AntDesign name="pluscircleo" size={24} color="#03b5f7" />
                 </TouchableOpacity>
               </View>

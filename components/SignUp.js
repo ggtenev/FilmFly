@@ -16,6 +16,7 @@ import {
   Button,
   TouchableOpacity,
   ScrollView,
+  Alert
 } from "react-native";
 
 export default function SignUp(props) {
@@ -171,7 +172,7 @@ export default function SignUp(props) {
           <TouchableOpacity
             style={styles.signUpBtn}
             onPress={() => {
-              navigation.navigate('HomeStack');
+              Alert.alert("Acccount Created Alert!!")
             }}
           >
             <Text style={styles.signUpText}>SIGN UP</Text>

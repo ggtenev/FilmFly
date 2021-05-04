@@ -31,7 +31,10 @@
     "react-native-slider-text": "0.0.10",
     "react-native-web": "~0.13.12",
     "react-redux": "^7.2.4",
-    "redux": "^4.1.0"
+    "redux": "^4.1.0",
+    "expo-document-picker": "~9.1.2",
+    "expo-image-picker": "~10.1.4",
+    "expo-video-thumbnails": "~5.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0"

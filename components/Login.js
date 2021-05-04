@@ -10,6 +10,7 @@ import {
   TextInput,
   Button,
   TouchableOpacity,
+  Alert
 } from "react-native";
 
 export default function Login(props) {
@@ -92,7 +93,7 @@ export default function Login(props) {
         <TouchableOpacity
           style={styles.forgot_button}
           onPress={() => {
-            
+            Alert.alert("Forgot Password")
           }}
         >
           <Text style={styles.loginText}>Forgot Password?</Text>
@@ -100,7 +101,7 @@ export default function Login(props) {
         <TouchableOpacity
           style={styles.loginBtn}
           onPress={() => {
-            navigation.navigate('HomeStack');
+           Alert.alert("Logged In")
           }}
         >
           <Text style={styles.loginText}>LOGIN</Text>

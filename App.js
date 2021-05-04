@@ -2,15 +2,14 @@ import "react-native-gesture-handler";
 
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { StyleSheet } from "react-native";
 import MainSwitchNavigator from "./DrawerNavigator";
+import { AuthStackNavigator } from "./MainStackNavigator";
 export default function App() {
+  const isLoggedIn = true;
   return (
     // <Login/>
     <NavigationContainer>
-      <MainSwitchNavigator />
+      {isLoggedIn ? <MainSwitchNavigator /> : <AuthStackNavigator />}
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({});

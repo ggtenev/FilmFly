@@ -35,22 +35,22 @@ const DrawerNavigator = () => {
   );
 };
 
-const MainSwitchNavigator = ({ navigation }) => {
-  return (
-    <Stack.Navigator initialRouteName="AuthStack">
-      <Stack.Screen
-        options={{ headerShown: false, gesturesEnabled: false }}
-        name="AuthStack"
-        component={AuthStackNavigator}
-      />
-      <Stack.Screen
-        options={{ headerShown: false, gesturesEnabled: false }}
-        name="HomeStack"
-        component={DrawerNavigator}
-      />
-    </Stack.Navigator>
-  );
-};
+// const MainSwitchNavigator = ({ navigation }) => {
+//   return (
+//     <Stack.Navigator initialRouteName="AuthStack">
+//       <Stack.Screen
+//         options={{ headerShown: false, gesturesEnabled: false }}
+//         name="AuthStack"
+//         component={AuthStackNavigator}
+//       />
+//       <Stack.Screen
+//         options={{ headerShown: false, gesturesEnabled: false }}
+//         name="HomeStack"
+//         component={DrawerNavigator}
+//       />
+//     </Stack.Navigator>
+//   );
+// };
 const styles = StyleSheet.create({
   helpText: {
     color: "#00bbff",
@@ -88,4 +88,4 @@ const styles = StyleSheet.create({
     color: "#ffff",
   },
 });
-export default MainSwitchNavigator;
+export default DrawerNavigator;
