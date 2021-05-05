@@ -9,15 +9,25 @@ import {
   FlatList,
   SafeAreaView,
   Alert,
+  Modal
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as VideoThumbnails from "expo-video-thumbnails";
+import {useDispatch,useSelector} from 'react-redux';
+import {ADD_TO_VIDEOS,REMOVE_FROM_VIDEOS,RESET_PROJECT_DETAILS} from '../../redux/InputFlow';
 
 export default function Step2(props) {
+
+  let videos = useSelector(state=>state.videos)
+  const [forbiddenMoveForward,setForbiddenMoveForward] = useState(false);
+  const dispatch = useDispatch()
+  const [modalOpen,setModalOpen] = useState(false);
   const { navigation } = props;
+
   const [counter, setCounter] = useState(0);
-  const [videos, setVideos] = useState([]);
+
   const [permissionGranted, setPermissionGranted] = useState(false);
+
   useEffect(() => {
     (async () => {
       if (Platform.OS !== "web") {
@@ -32,9 +42,15 @@ export default function Step2(props) {
       }
     })();
   }, []);
-  _onChangeText = (text) => {
-    console.log(text);
-  };
+ const _modalConfirm  = ()=>{ 
+    setModalOpen(false);
+    dispatch({type:RESET_PROJECT_DETAILS,payload:true})
+    navigation.navigate('Step1');
+  }
+
+ const  _modalClose = ()=>{
+  setModalOpen(false)
+}
   const generateThumbnail = async (videoURI) => {
     try {
       const { uri } = await VideoThumbnails.getThumbnailAsync(videoURI, {
@@ -45,7 +61,7 @@ export default function Step2(props) {
       console.warn(e);
     }
   };
-  millisToMinutesAndSeconds = (millis) => {
+  const millisToMinutesAndSeconds = (millis) => {
     var minutes = Math.floor(millis / 60000);
     var seconds = ((millis % 60000) / 1000).toFixed(0);
     return minutes + ":" + (seconds < 10 ? "0" : "") + seconds + " min";
@@ -61,9 +77,6 @@ export default function Step2(props) {
         aspect: [4, 3],
         quality: 1,
       });
-
-      console.log(result);
-
       if (!result.cancelled) {
         let duration = millisToMinutesAndSeconds(result.duration);
         let videoUri = result.uri;
@@ -77,7 +90,11 @@ export default function Step2(props) {
           videoURL: videoUri,
         };
         setCounter(counter + 1);
-        setVideos([...videos, videoData]);
+        dispatch({
+          type: ADD_TO_VIDEOS,
+          payload:videoData
+        })
+        setForbiddenMoveForward(false);
       }
     }
   };
@@ -85,7 +102,7 @@ export default function Step2(props) {
   const totalSteps = 6;
   const currentIndex = 1;
 
-  getHeaderStepsIndicators = () => {
+  const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
     let brightcounter = totalSteps - counter;
     let indicators = [];
@@ -105,14 +122,17 @@ export default function Step2(props) {
     }
     return indicators;
   };
-  deleteFromArray = (id) => {
-    var filtered = videos.filter(function (el) {
-      return el.id != id;
-    });
-    setVideos([...filtered]);
+  const deleteFromArray = (id) => {
+    dispatch({
+      type: REMOVE_FROM_VIDEOS,
+      payload: {id}
+    })
+    if(videos.length==0){
+      setForbiddenMoveForward(true);
+    }
   };
 
-  getHeader = () => {
+  const getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
     let Header = (
@@ -220,6 +240,26 @@ export default function Step2(props) {
   return (
     <View style={styles.root}>
       {getHeader()}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalOpen}
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+        }}>
+        <View  style={styles.centeredView}>
+          <View opacity={1}style={styles.modalView}>
+            <View style={styles.warning}><AntDesign syule={{alignSelf:'center'}} name="warning" color="white" size={40}/></View>
+            <Text style={styles.modalText}>If you go back to home, your project will be deleted.</Text>
+
+            <View style={styles.bottomButtonGroup}>
+               <TouchableOpacity style={styles.Step1BtnBack} onPress={_modalClose}><Text style={styles.Step1Text}>Cancel</Text></TouchableOpacity>
+               <TouchableOpacity  style={styles.Step1Btn} onPress={_modalConfirm}><Text style={styles.Step1Text}>Continue</Text></TouchableOpacity>
+         
+          </View>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           <Image
@@ -254,7 +294,7 @@ export default function Step2(props) {
           <TouchableOpacity
             style={styles.Step1BtnBack}
             onPress={() => {
-              navigation.navigate("Step1");
+              setModalOpen(true);
             }}
           >
             <Text style={styles.Step1Text}>Back</Text>
@@ -262,8 +302,14 @@ export default function Step2(props) {
 
           <TouchableOpacity
             style={styles.Step1Btn}
+            disabled={forbiddenMoveForward}
             onPress={() => {
+              if(videos.length==0){
+                setForbiddenMoveForward(true);
+              }
+              else{
               navigation.navigate("Step3");
+              }
             }}
           >
             <Text style={styles.Step1Text}>Continue</Text>
@@ -431,4 +477,42 @@ const styles = StyleSheet.create({
     fontSize: 18,
     alignSelf: "center",
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+    // backgroundColor: '#FFFFFF50',
+    // height:'100%'
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "#252d42",
+    borderRadius: 20,
+    padding: 5,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  openButton: {
+    backgroundColor: '#F194FF',
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    textAlign: 'center',
+    color:'white'
+  }
 });

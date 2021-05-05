@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useState} from "react";
 import { AntDesign } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -8,20 +8,36 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
+import {useDispatch,useSelector} from 'react-redux';
+import {SET_PROJECT_TITLE} from '../../redux/InputFlow';
 
 export default function Step1(props) {
+
+  let projectTitle = useSelector(state=>state.projectTitle)
+  const [forbiddenMoveForward,setForbiddenMoveForward] = useState(false);
+
+  const dispatch = useDispatch()
+
   const { navigation } = props;
-  _onChangeText = (text) => {
-    console.log(text);
+
+  const _onChangeText = (text) => {
+    if(text==""){
+      setForbiddenMoveForward(true)
+    }
+    else{
+      setForbiddenMoveForward(false)
+    }
+    dispatch({
+      type: SET_PROJECT_TITLE,
+      payload: text
+    })
   };
   const totalSteps = 6;
   const currentIndex = 0;
-  // this.setState((prevState) => ({
-  //   index: prevState.index - 1,
-  // }));
 
-  getHeaderStepsIndicators = () => {
+  const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
     let brightcounter = totalSteps - counter;
     let indicators = [];
@@ -41,7 +57,7 @@ export default function Step1(props) {
     }
     return indicators;
   };
-  getHeader = () => {
+  const getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
     let Header = (
@@ -108,6 +124,7 @@ export default function Step1(props) {
                 placeholder="Project Title"
                 placeholderTextColor="#898f9c"
                 onChangeText={_onChangeText}
+                value={projectTitle}
               />
             </View>
           </View>
@@ -116,8 +133,11 @@ export default function Step1(props) {
         <View style={styles.bottomButtonGroupSingle}>
           <TouchableOpacity
             style={styles.Step1BtnAlone}
+            disabled={forbiddenMoveForward}
             onPress={() => {
-              navigation.navigate("Step2");
+              if(forbiddenMoveForward!=="")
+                 navigation.navigate("Step2");
+              else setForbiddenMoveForward(true)
             }}
           >
             <Text style={styles.Step1Text}>Continue</Text>

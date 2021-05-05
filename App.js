@@ -1,15 +1,14 @@
 import "react-native-gesture-handler";
 
 import * as React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import MainSwitchNavigator from "./DrawerNavigator";
-import { AuthStackNavigator } from "./MainStackNavigator";
-export default function App() {
-  const isLoggedIn = true;
+import StartScreen from './StartScreen';
+import { Provider as StoreProvider } from 'react-redux';
+import store from './redux/store';
+export default function App() { 
   return (
     // <Login/>
-    <NavigationContainer>
-      {isLoggedIn ? <MainSwitchNavigator /> : <AuthStackNavigator />}
-    </NavigationContainer>
+    <StoreProvider store={store}>
+       <StartScreen/>
+    </StoreProvider>
   );
 }

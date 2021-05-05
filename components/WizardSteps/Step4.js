@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useState} from "react";
 import { AntDesign } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -9,16 +9,47 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import {useDispatch,useSelector} from 'react-redux';
+import {SET_ABOUT_VIDEO,SET_VIDEO_TEXT} from '../../redux/InputFlow';
 
 export default function Step4(props) {
+
+  let videoText = useSelector(state=>state.videoText);
+  let aboutVideo = useSelector(state=>state.aboutVideo);
+
+  
+  const [forbiddenMoveForward,setForbiddenMoveForward] = useState(false);
+
+  const dispatch = useDispatch()
+
   const { navigation } = props;
-  _onChangeText = (text) => {
-    console.log(text);
+
+  const onChangeVideoText = (text) => {
+    dispatch({
+      type:SET_VIDEO_TEXT,
+      payload:text
+    })
+    if(text==""){
+      setForbiddenMoveForward(true)
+    }else if(text!=="" && aboutVideo!==""){
+      setForbiddenMoveForward(false)
+    }
+  };
+  const onChangeAboutVideo = (text) => {
+    dispatch({
+      type:SET_ABOUT_VIDEO,
+      payload:text
+    })
+    if(text==""){
+      setForbiddenMoveForward(true)
+    }else if(text!=="" && videoText!==""){
+      setForbiddenMoveForward(false)
+    }
   };
   const totalSteps = 6;
   const currentIndex = 3;
 
-  getHeaderStepsIndicators = () => {
+  const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
     let brightcounter = totalSteps - counter;
     let indicators = [];
@@ -38,7 +69,7 @@ export default function Step4(props) {
     }
     return indicators;
   };
-  getHeader = () => {
+  const getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
     let Header = (
@@ -112,7 +143,8 @@ export default function Step4(props) {
                 placeholderTextColor="#898f9c"
                 numberOfLines={5}
                 multiline={true}
-                onChangeText={_onChangeText}
+                value={videoText}
+                onChangeText={onChangeVideoText}
               />
             </View>
           </View>
@@ -151,7 +183,8 @@ export default function Step4(props) {
                 placeholder="Type here"
                 placeholderTextColor="#898f9c"
                 multiline={true}
-                onChangeText={_onChangeText}
+                value={aboutVideo}
+                onChangeText={onChangeAboutVideo}
                 textAlign="left"
               />
             </View>
@@ -169,8 +202,14 @@ export default function Step4(props) {
 
           <TouchableOpacity
             style={styles.Step4Btn}
+            disabled={forbiddenMoveForward}
             onPress={() => {
-              navigation.navigate("Step5");
+              if(aboutVideo =="" || videoText ==""){
+                setForbiddenMoveForward(true)
+              }
+              else{
+                navigation.navigate("Step5");
+              }
             }}
           >
             <Text style={styles.Step4Text}>Continue</Text>

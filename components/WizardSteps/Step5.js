@@ -9,18 +9,27 @@ import {
   ScrollView,
 } from "react-native";
 import { Checkbox } from "react-native-paper";
+import {useDispatch,useSelector} from 'react-redux';
+import {SET_AGREED_TO_TERMS} from '../../redux/InputFlow';
 
 export default function Step5(props) {
-  const [checked, setChecked] = useState(false);
+
+  let agreedToTerms = useSelector(state=>state.agreedToTerms)
+
+  const dispatch = useDispatch()
+
   const { navigation } = props;
-  onChangeCheckBox = (val) => {
-    setChecked(!checked);
-    console.log(checked);
+
+  const onChangeCheckBox = () => {
+    dispatch({
+      type:SET_AGREED_TO_TERMS,
+      payload:!agreedToTerms
+    })
   };
   const totalSteps = 6;
   const currentIndex = 4;
 
-  getHeaderStepsIndicators = () => {
+  const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
     let brightcounter = totalSteps - counter;
     let indicators = [];
@@ -40,7 +49,7 @@ export default function Step5(props) {
     }
     return indicators;
   };
-  getHeader = () => {
+  const getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
     let Header = (
@@ -106,7 +115,7 @@ export default function Step5(props) {
               <Checkbox
                 color="#00bbff"
                 uncheckedColor="gray"
-                status={checked ? "checked" : "unchecked"}
+                status={agreedToTerms ? "checked" : "unchecked"}
                 onPress={onChangeCheckBox}
               />
             </View>
@@ -139,7 +148,9 @@ export default function Step5(props) {
 
           <TouchableOpacity
             style={styles.Step5Btn}
+            disabled={!agreedToTerms}
             onPress={() => {
+              if(agreedToTerms)
               navigation.navigate("Step6");
             }}
           >

@@ -12,10 +12,18 @@ import {
   TouchableOpacity,
   Alert
 } from "react-native";
-
+import {useDispatch} from 'react-redux';
+import {SET_LOGGED_IN} from '../redux/InputFlow';
 export default function Login(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const confirmLogIn = ()=>{
+    dispatch({
+      type:SET_LOGGED_IN,
+      payload:true
+    })
+  }
   const { navigation } = props;
   return (
     <View style={styles.container}>
@@ -100,9 +108,7 @@ export default function Login(props) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.loginBtn}
-          onPress={() => {
-           Alert.alert("Logged In")
-          }}
+          onPress={confirmLogIn}
         >
           <Text style={styles.loginText}>LOGIN</Text>
         </TouchableOpacity>

@@ -8,16 +8,47 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
+import {useDispatch,useSelector} from 'react-redux';
+import {SET_BILLING_ZIP_CODE,SET_CVV,SET_CARDHOLDER_NAME,SET_CREDIT_CARD_NUMBER,SET_EXPIRY_DATE} from '../../redux/InputFlow';
+
 export default function Step6(props) {
+
+  let cardholderName = useSelector(state=>state.cardholderName)
+  let creditCardNumber = useSelector(state=>state.creditCardNumber)
+  let expiryDate = useSelector(state=>state.expiryDate)
+  let cvv = useSelector(state=>state.cvv)
+  let billingZipCode = useSelector(state=>state.billingZipCode)
+  let completeState = useSelector(state=>state)
+
+  const dispatch = useDispatch()
+
   const { navigation } = props;
-  onChangeText = (name, text) => {
-    console.log(name, text);
+  const onChangeCardHolderName = (text) => {
+    dispatch({type:SET_CARDHOLDER_NAME,payload:text})
   };
+  const onChangeCreditCardNumber = (text) => {
+    dispatch({type:SET_CREDIT_CARD_NUMBER,payload:text})
+  };
+  const onChangeExpiryDate = (text) => {
+    dispatch({type:SET_EXPIRY_DATE,payload:text})
+  };
+  const onChangeCVV= (text) => {
+    dispatch({type:SET_CVV,payload:text})
+  };
+  const onChangeBillingZipCode = (text) => {
+    dispatch({type:SET_BILLING_ZIP_CODE,payload:text})
+  };
+  const checkIfConfiguredAllInputs = ()=>{
+    if( cardholderName == "" || cvv == "" || creditCardNumber == "" || expiryDate == "" || billingZipCode == "" )
+          return false
+    return true
+  }
   const totalSteps = 6;
   const currentIndex = 5;
 
-  getHeaderStepsIndicators = () => {
+  const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
     let brightcounter = totalSteps - counter;
     let indicators = [];
@@ -37,7 +68,7 @@ export default function Step6(props) {
     }
     return indicators;
   };
-  getHeader = () => {
+  const getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
     let Header = (
@@ -135,9 +166,8 @@ export default function Step6(props) {
                       style={styles.TextInput}
                       placeholder="Cardholder Name"
                       placeholderTextColor="#898f9c"
-                      onChangeText={(text) => {
-                        onChangeText("cardholderName", text);
-                      }}
+                      value={cardholderName}
+                      onChangeText={onChangeCardHolderName}
                     />
                   </View>
                 </View>
@@ -160,9 +190,8 @@ export default function Step6(props) {
                       placeholderTextColor="#898f9c"
                       secureTextEntry={true}
                       keyboardType="phone-pad"
-                      onChangeText={(text) => {
-                        onChangeText("creditCardNumber", text);
-                      }}
+                      value={creditCardNumber}
+                      onChangeText={onChangeCreditCardNumber}
                     />
                   </View>
                 </View>
@@ -183,9 +212,8 @@ export default function Step6(props) {
                       style={styles.TextInput}
                       placeholder="MM/YYYY"
                       placeholderTextColor="#898f9c"
-                      onChangeText={(text) => {
-                        onChangeText("expiryDate", text);
-                      }}
+                      value={expiryDate}
+                      onChangeText={onChangeExpiryDate}
                     />
                   </View>
                 </View>
@@ -205,9 +233,8 @@ export default function Step6(props) {
                       placeholder="XXX"
                       placeholderTextColor="#898f9c"
                       secureTextEntry={true}
-                      onChangeText={(text) => {
-                        onChangeText("cvv", text);
-                      }}
+                      value={cvv}
+                      onChangeText={onChangeCVV}
                     />
                   </View>
                 </View>
@@ -228,9 +255,8 @@ export default function Step6(props) {
                       style={styles.TextInput}
                       placeholder="Enter Billing Zip Code"
                       placeholderTextColor="#898f9c"
-                      onChangeText={(text) => {
-                        onChangeText("billingZipCode", text);
-                      }}
+                      value={billingZipCode}
+                      onChangeText={onChangeBillingZipCode}
                     />
                   </View>
                 </View>
@@ -252,7 +278,9 @@ export default function Step6(props) {
           <TouchableOpacity
             style={styles.Step6Btn}
             onPress={() => {
-              console.log("Submitted");
+              if(checkIfConfiguredAllInputs())
+              Alert.alert(JSON.stringify(completeState))
+              else Alert.alert("Please Enter All Values")
             }}
           >
             <Text style={styles.Step6Text}>Checkout</Text>
