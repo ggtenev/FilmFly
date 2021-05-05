@@ -135,7 +135,7 @@ export default function Step1(props) {
             style={styles.Step1BtnAlone}
             disabled={forbiddenMoveForward}
             onPress={() => {
-              if(forbiddenMoveForward!=="")
+              if(projectTitle!=="")
                  navigation.navigate("Step2");
               else setForbiddenMoveForward(true)
             }}
