@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef } from "react";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -9,23 +9,29 @@ import {
   FlatList,
   SafeAreaView,
   Alert,
-  Modal
+  Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as VideoThumbnails from "expo-video-thumbnails";
-import {useDispatch,useSelector} from 'react-redux';
-import {ADD_TO_VIDEOS,REMOVE_FROM_VIDEOS,RESET_PROJECT_DETAILS} from '../../redux/InputFlow';
+import { useDispatch, useSelector } from "react-redux";
+import { Video, AVPlaybackStatus } from "expo-av";
+import {
+  ADD_TO_VIDEOS,
+  REMOVE_FROM_VIDEOS,
+  RESET_PROJECT_DETAILS,
+} from "../../redux/InputFlow";
 
 export default function Step2(props) {
-
-  let videos = useSelector(state=>state.videos)
-  const [forbiddenMoveForward,setForbiddenMoveForward] = useState(false);
-  const dispatch = useDispatch()
-  const [modalOpen,setModalOpen] = useState(false);
+  let videos = useSelector((state) => state.videos);
+  const [forbiddenMoveForward, setForbiddenMoveForward] = useState(false);
+  const dispatch = useDispatch();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [videoToPlay, setVideoToPlay] = useState("");
   const { navigation } = props;
-
+  const video = useRef(null);
   const [counter, setCounter] = useState(0);
-
+  const [status, setStatus] = useState({});
   const [permissionGranted, setPermissionGranted] = useState(false);
 
   useEffect(() => {
@@ -42,15 +48,18 @@ export default function Step2(props) {
       }
     })();
   }, []);
- const _modalConfirm  = ()=>{ 
+  const _modalConfirm = () => {
     setModalOpen(false);
-    dispatch({type:RESET_PROJECT_DETAILS,payload:true})
-    navigation.navigate('Step1');
-  }
+    dispatch({ type: RESET_PROJECT_DETAILS, payload: true });
+    navigation.navigate("Step1");
+  };
 
- const  _modalClose = ()=>{
-  setModalOpen(false)
-}
+  const _modalClose = () => {
+    setModalOpen(false);
+  };
+  const _videoModelClose = () => {
+    setVideoModalOpen(false);
+  };
   const generateThumbnail = async (videoURI) => {
     try {
       const { uri } = await VideoThumbnails.getThumbnailAsync(videoURI, {
@@ -92,8 +101,8 @@ export default function Step2(props) {
         setCounter(counter + 1);
         dispatch({
           type: ADD_TO_VIDEOS,
-          payload:videoData
-        })
+          payload: videoData,
+        });
         setForbiddenMoveForward(false);
       }
     }
@@ -125,9 +134,9 @@ export default function Step2(props) {
   const deleteFromArray = (id) => {
     dispatch({
       type: REMOVE_FROM_VIDEOS,
-      payload: {id}
-    })
-    if(videos.length==0){
+      payload: { id },
+    });
+    if (videos.length == 0) {
       setForbiddenMoveForward(true);
     }
   };
@@ -182,6 +191,10 @@ export default function Step2(props) {
           />
           <TouchableOpacity
             style={{ marginTop: 30, alignSelf: "center", position: "absolute" }}
+            onPress={() => {
+              setVideoModalOpen(true);
+              setVideoToPlay(item.videoURL);
+            }}
           >
             <AntDesign color="white" name="playcircleo" size={35} />
           </TouchableOpacity>
@@ -244,19 +257,64 @@ export default function Step2(props) {
         animationType="slide"
         transparent={true}
         visible={modalOpen}
-        onRequestClose={() => {
-          Alert.alert('Modal has been closed.');
-        }}>
-        <View  style={styles.centeredView}>
-          <View opacity={1}style={styles.modalView}>
-            <View style={styles.warning}><AntDesign syule={{alignSelf:'center'}} name="warning" color="white" size={40}/></View>
-            <Text style={styles.modalText}>If you go back to home, your project will be deleted.</Text>
+        onRequestClose={() => {}}
+      >
+        <View style={styles.centeredView}>
+          <View opacity={1} style={styles.modalView}>
+            <View style={styles.warning}>
+              <AntDesign
+                syule={{ alignSelf: "center" }}
+                name="warning"
+                color="white"
+                size={40}
+              />
+            </View>
+            <Text style={styles.modalText}>
+              If you go back to home, your project will be deleted.
+            </Text>
 
             <View style={styles.bottomButtonGroup}>
-               <TouchableOpacity style={styles.Step1BtnBack} onPress={_modalClose}><Text style={styles.Step1Text}>Cancel</Text></TouchableOpacity>
-               <TouchableOpacity  style={styles.Step1Btn} onPress={_modalConfirm}><Text style={styles.Step1Text}>Continue</Text></TouchableOpacity>
-         
+              <TouchableOpacity
+                style={styles.Step1BtnBack}
+                onPress={_modalClose}
+              >
+                <Text style={styles.Step1Text}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.Step1Btn} onPress={_modalConfirm}>
+                <Text style={styles.Step1Text}>Continue</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={videoModalOpen}
+        onRequestClose={() => {}}
+      >
+        <View style={styles.centeredView}>
+          <View opacity={1} style={styles.modalView}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                setVideoModalOpen(false);
+              }}
+            >
+              <AntDesign name="closecircle" color="#FFFF" size={20} />
+            </TouchableOpacity>
+
+            <Video
+              ref={video}
+              style={styles.video}
+              source={{
+                uri: videoToPlay,
+              }}
+              useNativeControls
+              resizeMode="stretch"
+              isLooping
+              onPlaybackStatusUpdate={status => setStatus(() => status)}
+            />
           </View>
         </View>
       </Modal>
@@ -304,11 +362,10 @@ export default function Step2(props) {
             style={styles.Step1Btn}
             disabled={forbiddenMoveForward}
             onPress={() => {
-              if(videos.length==0){
+              if (videos.length == 0) {
                 setForbiddenMoveForward(true);
-              }
-              else{
-              navigation.navigate("Step3");
+              } else {
+                navigation.navigate("Step3");
               }
             }}
           >
@@ -352,6 +409,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: "100%",
     alignSelf: "center",
+  },
+  video: {
+    alignSelf: "center",
+    width: 320,
+    height: 200,
+    marginBottom: 10,
+    borderRadius: 20,
   },
   buttonWrapper: {
     flexDirection: "row",
@@ -479,8 +543,8 @@ const styles = StyleSheet.create({
   },
   centeredView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 22,
     // backgroundColor: '#FFFFFF50',
     // height:'100%'
@@ -490,8 +554,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#252d42",
     borderRadius: 20,
     padding: 5,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -501,18 +565,27 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   openButton: {
-    backgroundColor: '#F194FF',
+    backgroundColor: "#F194FF",
     borderRadius: 20,
     padding: 10,
     elevation: 2,
   },
   textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   modalText: {
-    textAlign: 'center',
-    color:'white'
-  }
+    textAlign: "center",
+    color: "white",
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+    margin: 10,
+  },
+  closeButtonIcon: {
+    fontSize: 20,
+    color: "#FFFF",
+    marginBottom: 15,
+  },
 });
