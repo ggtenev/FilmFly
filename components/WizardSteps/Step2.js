@@ -1,5 +1,5 @@
-import React from "react";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import React, { useEffect, useState,useRef } from "react";
+import { AntDesign, Feather , MaterialIcons} from "@expo/vector-icons";
 import {
   StyleSheet,
   Text,
@@ -7,55 +7,121 @@ import {
   Image,
   TouchableOpacity,
   FlatList,
+  TextInput,
   SafeAreaView,
+  Alert,
+  Modal,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import * as VideoThumbnails from "expo-video-thumbnails";
+import { useDispatch, useSelector } from "react-redux";
+import { Video, AVPlaybackStatus } from "expo-av";
+import {
+  ADD_TO_VIDEOS,
+  REMOVE_FROM_VIDEOS,
+  RESET_PROJECT_DETAILS,
+  RESET_PROJECT_TITLE
+} from "../../redux/InputFlow";
 
 export default function Step2(props) {
+  let videos = useSelector((state) => state.videos);
+  const [forbiddenMoveForward, setForbiddenMoveForward] = useState(false);
+  const dispatch = useDispatch();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [videoPressed, setVideoPressed] = useState(0);
+  const [videoToPlay, setVideoToPlay] = useState("");
   const { navigation } = props;
-  const videos = [
-    {
-      id: 1,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-    {
-      id: 2,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-    {
-      id: 3,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-    {
-      id: 4,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-    {
-      id: 5,
-      thumbnail:
-        "https://p1.pxfuel.com/preview/118/231/659/people-hands-achievement-group-royalty-free-thumbnail.jpg",
-      duration: "02:00 min",
-      title: "Video Title",
-    },
-  ];
-  _onChangeText = (text) => {
-    console.log(text);
+  const video = useRef(null);
+  const [counter, setCounter] = useState(0);
+  const [status, setStatus] = useState({});
+  const [permissionGranted, setPermissionGranted] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== "web") {
+        const {
+          status,
+        } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          setPermissionGranted(false);
+        } else {
+          setPermissionGranted(true);
+        }
+      }
+    })();
+  }, []);
+  const _modalConfirm = () => {
+    setModalOpen(false);
+    dispatch({ type: RESET_PROJECT_DETAILS, payload: true });
+    navigation.navigate("Step1");
   };
+  const _editModalConfirm = () => {
+    setEditModalOpen(false);
+    dispatch({ type: RESET_PROJECT_TITLE, payload: {newTitle,idx:videoPressed} });
+    // navigation.navigate("Step1");
+  };
+
+  const _modalClose = () => {
+    setModalOpen(false);
+  };
+  const _videoModelClose = () => {
+    setVideoModalOpen(false);
+  };
+  const generateThumbnail = async (videoURI) => {
+    try {
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoURI, {
+        time: 3000,
+      });
+      return uri;
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+  const millisToMinutesAndSeconds = (millis) => {
+    var minutes = Math.floor(millis / 60000);
+    var seconds = ((millis % 60000) / 1000).toFixed(0);
+    return minutes + ":" + (seconds < 10 ? "0" : "") + seconds + " min";
+  };
+
+  const pickImage = async () => {
+    if (!permissionGranted) {
+      Alert.alert("Sorry, we need camera roll permissions to make this work!");
+    } else {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.cancelled) {
+        let duration = millisToMinutesAndSeconds(result.duration);
+        let videoUri = result.uri;
+        let thumbnail = await generateThumbnail(videoUri);
+        let title = videoUri.replace(/^.*[\\\/]/, "");
+        let videoData = {
+          id: counter,
+          thumbnail: thumbnail,
+          title: title,
+          duration: duration,
+          videoURL: videoUri,
+        };
+        setCounter(counter + 1);
+        dispatch({
+          type: ADD_TO_VIDEOS,
+          payload: videoData,
+        });
+        setForbiddenMoveForward(false);
+      }
+    }
+  };
+
   const totalSteps = 6;
   const currentIndex = 1;
 
-  getHeaderStepsIndicators = () => {
+  const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
     let brightcounter = totalSteps - counter;
     let indicators = [];
@@ -75,7 +141,18 @@ export default function Step2(props) {
     }
     return indicators;
   };
-  getHeader = () => {
+
+  const deleteFromArray = (id) => {
+    dispatch({
+      type: REMOVE_FROM_VIDEOS,
+      payload: { id },
+    });
+    if (videos.length == 0) {
+      setForbiddenMoveForward(true);
+    }
+  };
+
+  const getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
     let Header = (
@@ -103,76 +180,215 @@ export default function Step2(props) {
 
     return Header;
   };
-  const Item = ({ item, onPress }) => (
-    <View
-      style={{
-        flexDirection: "row",
-        width: "100%",
-        justifyContent: "space-between",
-        marginBottom: 30,
-        backgroundColor: "#3A4254",
-        borderRadius: 15,
-      }}
-    >
-      <View>
-        <Image
-          style={{ width: 150, height: 100, borderRadius: 15 }}
-          source={{ uri: item.thumbnail }}
-        />
-        <TouchableOpacity
-          style={{ marginTop: 30, alignSelf: "center", position: "absolute" }}
-        >
-          <AntDesign color="white" name="playcircleo" size={35} />
-        </TouchableOpacity>
-      </View>
-      <View style={{ flexDirection: "column", marginTop: 5 }}>
-        <Text style={styles.Step2TabText}>{item.title}</Text>
-        <Text style={{ color: "gray" }}>{item.duration}</Text>
-      </View>
-      <View style={{ flexDirection: "column", marginRight: 10, marginTop: 10 }}>
-        <TouchableOpacity
-          style={{
-            height: 24,
-            width: 24,
-            backgroundColor: "#03b5f7",
-            borderRadius: 20,
-            justifyContent: "center",
-          }}
-        >
-          <Feather
-            style={{ alignSelf: "center" }}
-            name="edit"
-            color="white"
-            size={15}
+  const Item = ({ item, onPress, index }) => {
+    let titleTrimmed = item.title;
+    if (item.title.length > 8)
+      titleTrimmed = item.title.substring(0, 8) + "...";
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          width: "100%",
+          justifyContent: "space-between",
+          marginBottom: 30,
+          backgroundColor: "#3A4254",
+          borderRadius: 15,
+        }}
+      >
+        <View>
+          <Image
+            style={{ width: 150, height: 100, borderRadius: 15 }}
+            source={{ uri: item.thumbnail }}
           />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            marginTop: 10,
-            height: 24,
-            width: 24,
-            borderColor: "#03b5f7",
-            borderWidth: 1,
-            borderRadius: 20,
-            justifyContent: "center",
-          }}
+          <TouchableOpacity
+            style={{ marginTop: 30, alignSelf: "center", position: "absolute" }}
+            onPress={() => {
+              setVideoModalOpen(true);
+              setVideoToPlay(item.videoURL);
+            }}
+          >
+            <AntDesign color="white" name="playcircleo" size={35} />
+          </TouchableOpacity>
+        </View>
+        <View style={{ flexDirection: "column", marginTop: 5, marginLeft: 5 }}>
+          <Text style={styles.Step2TabText}>{titleTrimmed}</Text>
+          <Text style={{ color: "gray" }}>{item.duration}</Text>
+        </View>
+        <View
+          style={{ flexDirection: "column", marginRight: 10, marginTop: 10 }}
         >
-          <AntDesign
-            style={{ alignSelf: "center" }}
-            name="delete"
-            color="#03b5f7"
-            size={15}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+          onPress={() => {
+            console.log(index)
+            setVideoPressed(index)
+            setEditModalOpen(true)}}
+            style={{
+              height: 24,
+              width: 24,
+              backgroundColor: "#03b5f7",
+              borderRadius: 20,
+              justifyContent: "center",
+            }}
+          >
+            <Feather
+              style={{ alignSelf: "center" }}
+              name="edit"
+              color="white"
+              size={15}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              marginTop: 10,
+              height: 24,
+              width: 24,
+              borderColor: "#03b5f7",
+              borderWidth: 1,
+              borderRadius: 20,
+              justifyContent: "center",
+            }}
+            onPress={() => {
+              deleteFromArray(item.id);
+            }}
+          >
+            <AntDesign
+              style={{ alignSelf: "center" }}
+              name="delete"
+              color="#03b5f7"
+              size={15}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
-  const renderItem = ({ item }) => {
-    return <Item item={item} onPress={() => {}} />;
+    );
+  };
+  const renderItem = ({ item,index }) => {
+    return <Item item={item} index={index} onPress={() => {}} />;
   };
   return (
     <View style={styles.root}>
       {getHeader()}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalOpen}
+        onRequestClose={() => {}}
+      >
+        <View style={styles.centeredView}>
+          <View opacity={1} style={styles.modalView}>
+            <View style={styles.warning}>
+              <AntDesign
+                syule={{ alignSelf: "center" }}
+                name="warning"
+                color="white"
+                size={40}
+              />
+            </View>
+            <Text style={styles.modalText}>
+              If you go back to home, your project will be deleted.
+            </Text>
+
+            <View style={styles.bottomButtonGroup}>
+              <TouchableOpacity
+                style={styles.Step1BtnBack}
+                onPress={_modalClose}
+              >
+                <Text style={styles.Step1Text}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.Step1Btn} onPress={_modalConfirm}>
+                <Text style={styles.Step1Text}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalOpen}
+        onRequestClose={() => {}}
+      >
+        <View style={styles.centeredView}>
+          <View opacity={1} style={styles.modalView}>
+            <View style={{...styles.warning,marginTop:10}}>
+              <AntDesign
+                style={{ alignSelf: "center" }}
+                name="edit"
+                color="white"
+                size={40}
+               
+              />
+            </View>
+            <Text style={styles.modalText}>
+              You can edit the title of your video
+            </Text>
+            <View style={{...styles.inputView,marginTop:15}}>
+            <View
+            style={{
+              // flex: 3,
+              flexDirection: "row",
+              alignItems: "center",
+              marginLeft: 15,
+            
+            }}
+          >
+            <MaterialIcons name="title" size={20} color="#03b5f7" />
+            
+            <TextInput
+              style={styles.TextInput}
+              placeholder="Title"
+              placeholderTextColor="#898f9c"
+              onChangeText={(email) => setNewTitle(email)}
+            />
+          </View>
+          </View>
+
+            <View style={styles.bottomButtonGroup}>
+              <TouchableOpacity
+                style={styles.Step1BtnBack}
+                onPress={() => setEditModalOpen(false)}
+              >
+                <Text style={styles.Step1Text}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.Step1Btn} onPress={_editModalConfirm}>
+                <Text style={styles.Step1Text}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={videoModalOpen}
+        onRequestClose={() => {}}
+      >
+        <View style={styles.centeredView}>
+          <View opacity={1} style={styles.modalView}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                setVideoModalOpen(false);
+              }}
+            >
+              <AntDesign name="closecircle" color="red" size={20} />
+            </TouchableOpacity>
+
+            <Video
+              ref={video}
+              style={styles.video}
+              shouldPlay
+              source={{
+                uri: videoToPlay,
+              }}
+              // useNativeControls
+              resizeMode='contain'
+              isLooping
+              onPlaybackStatusUpdate={status => setStatus(() => status)}
+            />
+          </View>
+        </View>
+      </Modal>
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           <Image
@@ -186,7 +402,10 @@ export default function Step2(props) {
             <View>
               <View style={styles.Step2Tab}>
                 <Text style={styles.Step2TabText}>Videos {"&"} Photos</Text>
-                <TouchableOpacity style={{ alignSelf: "center" }}>
+                <TouchableOpacity
+                  onPress={pickImage}
+                  style={{ alignSelf: "center" }}
+                >
                   <AntDesign name="pluscircleo" size={24} color="#03b5f7" />
                 </TouchableOpacity>
               </View>
@@ -204,7 +423,7 @@ export default function Step2(props) {
           <TouchableOpacity
             style={styles.Step1BtnBack}
             onPress={() => {
-              navigation.navigate("Step1");
+              setModalOpen(true);
             }}
           >
             <Text style={styles.Step1Text}>Back</Text>
@@ -212,8 +431,13 @@ export default function Step2(props) {
 
           <TouchableOpacity
             style={styles.Step1Btn}
+            disabled={forbiddenMoveForward}
             onPress={() => {
-              navigation.navigate("Step3");
+              if (videos.length == 0) {
+                setForbiddenMoveForward(true);
+              } else {
+                navigation.navigate("Step3");
+              }
             }}
           >
             <Text style={styles.Step1Text}>Continue</Text>
@@ -249,6 +473,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
   },
+  inputView: {
+    backgroundColor: "#313b54",
+    borderRadius: 10,
+    width: "85%",
+    height: 45,
+    marginLeft: "auto",
+    marginRight: "auto",
+    marginBottom: 20,
+    alignItems: "flex-start",
+  },
   indicatorGroup: {
     display: "flex",
     flexDirection: "row",
@@ -256,6 +490,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: "100%",
     alignSelf: "center",
+  },
+  video: {
+    alignSelf: "center",
+    width: 320,
+    height: 200,
+    marginBottom: 10,
+    borderRadius: 20,
   },
   buttonWrapper: {
     flexDirection: "row",
@@ -380,5 +621,52 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
     alignSelf: "center",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+    // backgroundColor: '#FFFFFF50',
+    // height:'100%'
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "#252d42",
+    borderRadius: 20,
+    padding: 5,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  openButton: {
+    backgroundColor: "#F194FF",
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  modalText: {
+    textAlign: "center",
+    color: "white",
+  },
+  closeButton: {
+    alignSelf: "flex-end",
+    margin: 10,
+  },
+  closeButtonIcon: {
+    fontSize: 20,
+    color: "#FFFF",
+    marginBottom: 15,
   },
 });

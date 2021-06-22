@@ -1,23 +1,224 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { AntDesign, Entypo } from "@expo/vector-icons";
+import firebase from "firebase";
+import functions from "firebase/functions";
+
+import { WebView } from "react-native-webview";
+
 import {
   StyleSheet,
   Text,
+
   View,
   Image,
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  SET_BILLING_ZIP_CODE,
+  SET_CVV,
+  SET_CARDHOLDER_NAME,
+  SET_CREDIT_CARD_NUMBER,
+  SET_EXPIRY_DATE,
+  CLEAN_STORE,
+} from "../../redux/InputFlow";
+
+import { CardField, useStripe, useConfirmPayment } from "@stripe/stripe-react-native";
+
 export default function Step6(props) {
+  const [currentOrders, setCurentOrders] = useState([]);
+  const [response, setResponse] = useState();
+  const [makePayment, setMakePayment] = useState(false);
+  const [paymentStauts, setPaymentStatus] = useState();
+  const [web, setWeb] = useState(false);
+  const [stripeKey, setStripeKSey] = useState();
+  const { confirmPayment} = useStripe();
+
+  const htmlContent = "<h1>Heklowgg</h1>";
+
+  if (web) {
+    return (
+      <WebView
+        javaScriptEnabled={true}
+        style={{ flex: 1 }}
+        originWhitelist={["*"]}
+        source={{ html: htmlContent }}
+      />
+    );
+  }
+
+  // useEffect(() => {
+  //   firebase.firestore().collection('users').doc(user.uid).get().then(doc => {
+  //       if(doc.data().orders){
+  //         console.log('ORDER',doc.data().orders)
+  //         setCurentOrders(doc.data().orders)
+  //       }
+  //   })
+  //   return
+  // }, [])
+
+  let cardholderName = useSelector((state) => state.cardholderName);
+  let creditCardNumber = useSelector((state) => state.creditCardNumber);
+  let expiryDate = useSelector((state) => state.expiryDate);
+  let cvv = useSelector((state) => state.cvv);
+  let billingZipCode = useSelector((state) => state.billingZipCode);
+  let videos = useSelector((state) => state.videos);
+  let videoTitle = useSelector((state) => state.projectTitle);
+  let about = useSelector((state) => state.aboutVideo);
+  let length = useSelector((state) => state.videoLength);
+  let orientation = useSelector((state) => state.videoOrientation);
+  let videoText = useSelector((state) => state.videoText);
+
+  let manual = useSelector((state) => state.manual);
+  let previousOrders = useSelector((state) => state.previousOrders);
+  let email = useSelector((state) => state.email);
+
+  const dispatch = useDispatch();
+  let userID = firebase.auth().currentUser.uid;
+  let user = firebase.auth().currentUser;
+
   const { navigation } = props;
-  onChangeText = (name, text) => {
-    console.log(name, text);
+  const onChangeCardHolderName = (text) => {
+    dispatch({ type: SET_CARDHOLDER_NAME, payload: text });
+  };
+  const onChangeCreditCardNumber = (text) => {
+    dispatch({ type: SET_CREDIT_CARD_NUMBER, payload: text });
+  };
+  const onChangeExpiryDate = (text) => {
+    dispatch({ type: SET_EXPIRY_DATE, payload: text });
+  };
+  const onChangeCVV = (text) => {
+    dispatch({ type: SET_CVV, payload: text });
+  };
+  const onChangeBillingZipCode = (text) => {
+    dispatch({ type: SET_BILLING_ZIP_CODE, payload: text });
+  };
+  const checkIfConfiguredAllInputs = () => {
+    if (
+      cardholderName == "" ||
+      cvv == "" ||
+      creditCardNumber == "" ||
+      expiryDate == "" ||
+      billingZipCode == ""
+    )
+      return false;
+    return true;
+  };
+
+  useEffect( () => {
+    fetch(
+      "https://us-central1-film-fly-app.cloudfunctions.net/intentFunction/createIntent",
+      {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currency: 'usd',
+        }),
+      }
+    )
+      .then((res) => {
+        res.json().then((res) => {
+          console.log('INTENT',res);
+          setStripeKSey(res.clientSecret); 
+        })
+      })
+      
+
+    return;
+  }, []);
+
+  const uploadVideos = async () => {
+    const urls = [];
+
+
+    const response = await confirmPayment(stripeKey, {
+        type: "Card",
+        billingDetails: {
+          email: firebase.auth().currentUser.email,
+        },
+      })
+    
+      console.log('RESPO',response)
+
+  
+    if (response.error) {
+      Alert.alert("Payment unsuccessfull");
+      console.log(response.error)
+      return;
+    } else {
+      Alert.alert('Payment was successful')
+    }
+     
+    
+
+    videos.forEach(async (v) => {
+      const response = await fetch(v.videoURL);
+      const blob = await response.blob();
+
+      var ref = firebase
+        .storage()
+        .ref()
+        .child(
+          "users/" +
+            user.uid +
+            "/" +
+            "videos/" +
+            v.videoURL.toString().slice(-12)
+        );
+
+      return ref.put(blob).then(() => {
+        ref.getDownloadURL().then((url) => {
+          urls.push(url);
+          firebase
+            .firestore()
+            .collection("users")
+            .doc(user.uid)
+            .set(
+              {
+                orders: [
+                  ...previousOrders,
+                  {
+                    title: videoTitle,
+                    orientation,
+                    about,
+                    url: urls,
+                    length,
+                    videoText,
+                  },
+                ],
+                status: 1,
+              },
+              { merge: true }
+            );
+        });
+      });
+    });
+
+    firebase
+      .firestore()
+      .collection("orders")
+      .add({
+        email: firebase.auth().currentUser.email,
+      })
+      .then(() => {
+        dispatch({type:CLEAN_STORE,payload:''})
+        props.navigation.navigate("ProjectProcess");
+      });
+
+
+    
   };
   const totalSteps = 6;
   const currentIndex = 5;
 
-  getHeaderStepsIndicators = () => {
+
+
+  const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
     let brightcounter = totalSteps - counter;
     let indicators = [];
@@ -37,7 +238,7 @@ export default function Step6(props) {
     }
     return indicators;
   };
-  getHeader = () => {
+  const getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
     let Header = (
@@ -47,9 +248,9 @@ export default function Step6(props) {
             Step {currentIndex + 1}/{totalSteps}
           </Text>
           <AntDesign
-            name="menu-unfold"
+            name='menu-unfold'
             size={20}
-            color="#03b5f7"
+            color='#03b5f7'
             onPress={() => {
               navigation.toggleDrawer();
             }}
@@ -89,9 +290,15 @@ export default function Step6(props) {
             <View style={styles.whatYouGetRow}>
               <View style={styles.whatYouGetItem}>
                 <View style={styles.circle}></View>
-                <Text style={styles.whatYouGetItemText}>
-                  Up to 5 minutes video
-                </Text>
+                {manual ? (
+                  <Text style={styles.whatYouGetItemText}>
+                    Unlimited length of the video
+                  </Text>
+                ) : (
+                  <Text style={styles.whatYouGetItemText}>
+                    Up to 5 minutes video
+                  </Text>
+                )}
               </View>
               <View style={styles.whatYouGetItem}>
                 <View style={styles.circle}></View>
@@ -106,12 +313,15 @@ export default function Step6(props) {
             </View>
           </View>
           <View style={styles.midCircle}>
-            <Text style={styles.midCircleText}>Cost: $99</Text>
+            <Text style={styles.midCircleText}>
+              {!manual ? <Text>Cost: $99</Text> : <Text>Cost: $0</Text>}
+            </Text>
           </View>
         </View>
 
-        <View style={{ ...styles.formContainer, marginTop: 25 }}>
-          <View style={styles.tabLine}>
+        {manual ? null : (
+          <View style={{ ...styles.formContainer, marginTop: 25 }}>
+             <View style={styles.tabLine}>
             <View>
               <View style={styles.Step6Tab}>
                 <Text style={styles.Step6TabText}>Checkout</Text>
@@ -119,7 +329,51 @@ export default function Step6(props) {
               </View>
             </View>
           </View>
-          <View style={styles.whatYouGet}>
+          <View style={styles.inputView}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginLeft: 15,
+                    }}
+                  >
+                    <AntDesign name="user" size={20} color="#03b5f7" />
+                    <TextInput
+                      style={styles.TextInput}
+                      placeholder="Cardholder Name"
+                      placeholderTextColor="#898f9c"
+                      value={cardholderName}
+                      onChangeText={onChangeCardHolderName}
+                    />
+                  </View>
+                </View>
+            <CardField
+              postalCodeEnabled={false}
+              placeholder={{
+                number: "4242 4242 4242 4242",
+              }}
+              cardStyle={{
+         
+                backgroundColor: "white",
+                textColor: "black",
+              }}
+              style={{
+        
+                
+                width: "100%",
+                height: 50,
+                marginVertical: 30,
+              }}
+              onCardChange={(cardDetails) => {
+                console.log("cardDetails", cardDetails);
+              }}
+              onFocus={(focusedField) => {
+                console.log("focusField", focusedField);
+              }}
+            />
+
+           
+          {/* <View style={styles.whatYouGet}>
             <View style={styles.whatYouGetRow}>
               <View style={styles.whatYouGetItem}>
                 <View style={styles.inputView}>
@@ -135,9 +389,8 @@ export default function Step6(props) {
                       style={styles.TextInput}
                       placeholder="Cardholder Name"
                       placeholderTextColor="#898f9c"
-                      onChangeText={(text) => {
-                        onChangeText("cardholderName", text);
-                      }}
+                      value={cardholderName}
+                      onChangeText={onChangeCardHolderName}
                     />
                   </View>
                 </View>
@@ -160,9 +413,8 @@ export default function Step6(props) {
                       placeholderTextColor="#898f9c"
                       secureTextEntry={true}
                       keyboardType="phone-pad"
-                      onChangeText={(text) => {
-                        onChangeText("creditCardNumber", text);
-                      }}
+                      value={creditCardNumber}
+                      onChangeText={onChangeCreditCardNumber}
                     />
                   </View>
                 </View>
@@ -183,9 +435,8 @@ export default function Step6(props) {
                       style={styles.TextInput}
                       placeholder="MM/YYYY"
                       placeholderTextColor="#898f9c"
-                      onChangeText={(text) => {
-                        onChangeText("expiryDate", text);
-                      }}
+                      value={expiryDate}
+                      onChangeText={onChangeExpiryDate}
                     />
                   </View>
                 </View>
@@ -205,9 +456,8 @@ export default function Step6(props) {
                       placeholder="XXX"
                       placeholderTextColor="#898f9c"
                       secureTextEntry={true}
-                      onChangeText={(text) => {
-                        onChangeText("cvv", text);
-                      }}
+                      value={cvv}
+                      onChangeText={onChangeCVV}
                     />
                   </View>
                 </View>
@@ -228,16 +478,16 @@ export default function Step6(props) {
                       style={styles.TextInput}
                       placeholder="Enter Billing Zip Code"
                       placeholderTextColor="#898f9c"
-                      onChangeText={(text) => {
-                        onChangeText("billingZipCode", text);
-                      }}
+                      value={billingZipCode}
+                      onChangeText={onChangeBillingZipCode}
                     />
                   </View>
                 </View>
               </View>
             </View>
+          </View> */}
           </View>
-        </View>
+        )}
 
         <View style={styles.bottomButtonGroup}>
           <TouchableOpacity
@@ -252,7 +502,10 @@ export default function Step6(props) {
           <TouchableOpacity
             style={styles.Step6Btn}
             onPress={() => {
-              console.log("Submitted");
+              uploadVideos();
+              // if(checkIfConfiguredAllInputs())
+              // Alert.alert(JSON.stringify(completeState))
+              // else Alert.alert("Please Enter All Values")
             }}
           >
             <Text style={styles.Step6Text}>Checkout</Text>

@@ -1,6 +1,8 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
+import firebase from 'firebase'
+import {useDispatch,useSelector} from 'react-redux'
 import {
   StyleSheet,
   Text,
@@ -11,6 +13,7 @@ import {
   Button,
   TouchableOpacity,
 } from "react-native";
+import { FECTH_USER_STATUS } from "../redux/InputFlow";
 
 export default function HowItWorks(props) {
   const { navigation } = props;
@@ -20,6 +23,21 @@ export default function HowItWorks(props) {
     { text: "Review your video and request revisions" },
     { text: "Download your completed video" },
   ];
+
+  const manual = useSelector(state => state.manual)
+
+  const dispatch = useDispatch()
+
+  const userId = firebase.auth().currentUser.uid
+  useEffect(() => {
+    firebase.firestore().collection('users').doc(userId).onSnapshot(doc => {
+      console.log(doc.data())
+      dispatch({ type: FECTH_USER_STATUS, userData: doc.data()});
+    })
+    return
+  }, []) 
+
+
   return (
     <View style={styles.container}>
       <Image
@@ -42,9 +60,9 @@ export default function HowItWorks(props) {
       <View style={styles.formContainer}>
         <View style={styles.tabLine}>
           <View>
-            <TouchableOpacity style={styles.Step1Tab}>
+            <View style={styles.Step1Tab}>
               <Text style={styles.Step1Text}>How it Works</Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View style={styles.innerView}>
@@ -62,12 +80,12 @@ export default function HowItWorks(props) {
           })}
         </View>
         <View style={styles.midCircle}>
-          <Text style={styles.midCircleText}>Cost: $99</Text>
+          <Text style={styles.midCircleText}>{manual ? 'Cost: $0' : 'Cost: $99'}</Text>
         </View>
         <TouchableOpacity
           style={styles.loginBtn}
           onPress={() => {
-            navigation.navigate("WizardFlow");
+            navigation.navigate("Step1");
           }}
         >
           <Text style={styles.loginText}>Start Now</Text>

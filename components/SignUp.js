@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
+import firebase from '../constants/config'
 import {
   AntDesign,
   Feather,
@@ -13,15 +14,107 @@ import {
   View,
   Image,
   TextInput,
+  ActivityIndicator,
   Button,
   TouchableOpacity,
   ScrollView,
+  Alert
 } from "react-native";
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 
 export default function SignUp(props) {
+  const [toggleCheckBox, setToggleCheckBox] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const { navigation } = props;
+
+
+    //SIGN UP METHOD
+    const signUpMethod = async () => {
+    
+      setIsLoading(true);
+      if (!username || !phone || !email || !password || !password2) {
+        setError("Fill in all fields");
+        setIsLoading(false);
+        return;
+      }
+    
+  
+          else if (password !== password2) {
+            setError("Password doesn't match");
+            setIsLoading(false);
+            return;
+      }
+      //  else if (!thought) {
+      //       setError("You have to accept the Terms and Conditions");
+      //       setIsLoading(false);
+      //       return;
+      //     }
+      //DISPATCHING SIGNUP ACTION TO FIREBASE
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, password)
+        .then(async (usercredentials) => {
+          // console.log(usercredentials);
+          // await AsyncStorage.setItem("userToken", usercredentials.user.uid);
+          await usercredentials.user.updateProfile({
+            displayName: `${username}`,
+          });
+  
+          await usercredentials.user
+            .sendEmailVerification()
+  
+            .then(function () {
+              firebase
+                .firestore()
+                .collection("users")
+                .doc(usercredentials.user.uid)
+                .set({
+                  name: `${username}`,
+                  email: email,
+                  phone:phone,
+                  company,
+                  manual:false,
+                  status:0,
+                  orders:[],
+                  
+                })
+                .then(() => {
+                  setIsLoading(false);
+                });
+            })
+            .catch(function (error) {
+              // An error happened.
+            });
+  
+          // dispatch(authActions.signUp(email, password, firstName, lastName));
+          setEmail("");
+          setPassword("");
+          // navigation.navigate("DrawerNav");
+          //CHECK IF THE SIGNUP WAS SUCCESSFUL AND FETCHING ERRORS
+        })
+        .catch((err) => {
+          setError(err.message);
+          console.log(err);
+          setIsLoading(false);
+        });
+    };
+
+     //LOADING SPINNER WHILE SENDING REQUEST TO THE SERVER
+  if (isLoading) {
+    return (
+      <View style={styles.activityIndicator}>
+        <ActivityIndicator size='large' color='blue' />
+      </View>
+    );
+  }
 
   return (
     <View style={{ backgroundColor: "#152034", height: "100%" }}>
@@ -29,11 +122,11 @@ export default function SignUp(props) {
         style={{ width: "100%" }}
         contentContainerStyle={styles.container}
       >
-        <View style={styles.helpBtnView}>
+        {/* <View style={styles.helpBtnView}>
           <TouchableOpacity style={styles.helpBtn}>
             <Text style={styles.helpText}>?</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
         <Image
           style={styles.image}
           source={require("../assets/Background.png")}
@@ -66,9 +159,9 @@ export default function SignUp(props) {
               <FontAwesome name="user-o" size={20} color="#03b5f7" />
               <TextInput
                 style={styles.TextInput}
-                placeholder="Username"
+                placeholder="Name"
                 placeholderTextColor="#898f9c"
-                onChangeText={(email) => setEmail(email)}
+                onChangeText={(username) => setUsername(username)}
               />
             </View>
           </View>
@@ -87,11 +180,11 @@ export default function SignUp(props) {
                 style={styles.TextInput}
                 placeholder="Phone Number"
                 placeholderTextColor="#898f9c"
-                secureTextEntry={true}
-                onChangeText={(password) => setPassword(password)}
+                // secureTextEntry={true}
+                onChangeText={(phone) => setPhone(phone)}
               />
             </View>
-          </View>
+          </View> 
           <View style={styles.inputView}>
             <View
               style={{
@@ -125,8 +218,8 @@ export default function SignUp(props) {
                 style={styles.TextInput}
                 placeholder="Company Name (optional)"
                 placeholderTextColor="#898f9c"
-                secureTextEntry={true}
-                onChangeText={(password) => setPassword(password)}
+                // secureTextEntry={true}
+                onChangeText={(company) => setCompany(company)}
               />
             </View>
           </View>
@@ -144,7 +237,8 @@ export default function SignUp(props) {
                 style={styles.TextInput}
                 placeholder="Password"
                 placeholderTextColor="#898f9c"
-                onChangeText={(email) => setEmail(email)}
+                secureTextEntry={true}
+                onChangeText={(password) => setPassword(password)}
               />
             </View>
           </View>
@@ -164,15 +258,28 @@ export default function SignUp(props) {
                 placeholder="Re enter Password"
                 placeholderTextColor="#898f9c"
                 secureTextEntry={true}
-                onChangeText={(password) => setPassword(password)}
+                onChangeText={(password2) => setPassword2(password2)}
               />
             </View>
           </View>
+          <Text style={{ color: "red", marginTop: 15,textAlign:'center' }}>{error}</Text>
+          {/* Terms & Privacy policy */}
+          <View style={{paddingHorizontal:10,alignItems:'center'}}>
+          <Text style={styles.terms}>By signing up you agree to our <Text onPress={() => Linking.openURL('https://gofilmfly.com/terms')} style={styles.underline}>Terms</Text>  and  <Text onPress={() => Linking.openURL('https://gofilmfly.com/privacy')} style={styles.underline}>Privacy Policy</Text></Text>
+          </View>
+       
+     
+      
+            
+ 
+     
+           
+    
+  
+        {/* </View> */}
           <TouchableOpacity
             style={styles.signUpBtn}
-            onPress={() => {
-              navigation.navigate('HomeStack');
-            }}
+            onPress={signUpMethod}
           >
             <Text style={styles.signUpText}>SIGN UP</Text>
           </TouchableOpacity>
@@ -201,7 +308,10 @@ const styles = StyleSheet.create({
     marginTop: 40,
     backgroundColor: "#152034",
   },
-
+underline:{
+ textDecorationLine:'underline',
+ color:'#03b5f7'
+},
   helpText: {
     color: "#00bbff",
   },
@@ -220,11 +330,18 @@ const styles = StyleSheet.create({
     top: 5,
     right: 30,
   },
-
+  activityIndicator: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor:'#152034'
+  },
   image: {
     marginTop: 90,
   },
-
+terms:{
+textAlign:'center',
+color:'white'
+},
   inputView: {
     backgroundColor: "#313b54",
     borderRadius: 15,
@@ -242,6 +359,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     marginLeft: 20,
+    color:'white'
   },
 
   forgot_button: {

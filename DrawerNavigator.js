@@ -88,4 +88,4 @@ const styles = StyleSheet.create({
     color: "#ffff",
   },
 });
-export default MainSwitchNavigator;
+export default DrawerNavigator;

@@ -10,28 +10,46 @@ import {
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import Slider from "@react-native-community/slider";
+import {useDispatch,useSelector} from 'react-redux';
+import {SET_VIDEO_LENGTH,SET_VIDEO_ORIENTATION} from '../../redux/InputFlow';
 
 export default function Step3(props) {
-  const [videoOrientation, setVideoOrientation] = useState("first");
-  const [sliderValue, setSliderValue] = useState(0);
-  const [position, setPosition] = useState(3);
+
+  let videoLength = useSelector(state=>state.videoLength)
+  let videoOrientation = useSelector(state=>state.videoOrientation)
+  let manual = useSelector(state => state.manual)
+
+  const [forbiddenMoveForward,setForbiddenMoveForward] = useState(false);
+
+  const dispatch = useDispatch()
+
+  const [position, setPosition] = useState(videoLength?videoLength*19:3);
+
   const { navigation } = props;
-  onChangeText = (text) => {
-    console.log(text);
-  };
-  onChangeSlider = (value) => {
+
+  const onChangeSlider = (value) => {
     setPosition(value * 19);
-    setSliderValue(value);
-    console.log(value);
+    dispatch({
+      type:SET_VIDEO_LENGTH,
+      payload:value
+    })
+    if(value==0){
+      setForbiddenMoveForward(true);
+    }else{
+      setForbiddenMoveForward(false);
+    }
   };
-  onRadioClicked = (value) => {
-    setVideoOrientation(value);
-    console.log(value);
+
+  const onRadioClicked = (value) => {
+    dispatch({
+      type:SET_VIDEO_ORIENTATION,
+      payload:value
+    })
   };
   const totalSteps = 6;
   const currentIndex = 2;
 
-  getHeaderStepsIndicators = () => {
+  const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
     let brightcounter = totalSteps - counter;
     let indicators = [];
@@ -51,7 +69,7 @@ export default function Step3(props) {
     }
     return indicators;
   };
-  getHeader = () => {
+  const getHeader = () => {
     let indicators = getHeaderStepsIndicators();
 
     let Header = (
@@ -98,14 +116,15 @@ export default function Step3(props) {
             source={require("../../assets/step3.png")}
           />
         </View>
-        <View style={styles.formContainer}>
+        {!manual && (
+          <View style={styles.formContainer}>
           <View style={styles.tabLine}>
             <View>
               <View style={styles.Step3Tab}>
                 <Text style={styles.Step3TabText}>
                   How long do you want your video?
                 </Text>
-                <Text style={styles.Step3TabSubText}>5 miutes max</Text>
+                <Text style={styles.Step3TabSubText}>5 Miutes Max</Text>
               </View>
 
               <Slider
@@ -120,6 +139,7 @@ export default function Step3(props) {
                 minimumValue={0}
                 maximumValue={5}
                 step={1}
+                value={videoLength}
                 minimumTrackTintColor="#00bbff"
                 maximumTrackTintColor="gray"
                 thumbTintColor="#00bbff"
@@ -159,13 +179,15 @@ export default function Step3(props) {
                       fontSize: 10,
                     }}
                   >
-                    {sliderValue} mins
+                    {videoLength} mins
                   </Text>
                 </View>
               </View>
             </View>
           </View>
         </View>
+        )}
+        
         <View style={styles.formContainer}>
           <View style={styles.tabLine}>
             <View>
@@ -183,14 +205,14 @@ export default function Step3(props) {
                   color="#00bbff"
                   labelStyle={{ color: "white" }}
                   label="Horizontal Orientation"
-                  value="horizontal"
+                  value="HORIZONTAL"
                 />
                 <RadioButton.Item
                   style={{ flexDirection: "row-reverse" }}
                   color="#00bbff"
                   labelStyle={{ color: "white" }}
                   label="Vertical Orientation"
-                  value="vertical"
+                  value="VERTICAL"
                 />
               </RadioButton.Group>
             </View>
@@ -208,8 +230,14 @@ export default function Step3(props) {
 
           <TouchableOpacity
             style={styles.Step3Btn}
+            disabled={forbiddenMoveForward}
             onPress={() => {
+              if(videoLength==0 && !manual){
+                setForbiddenMoveForward(true);
+              }
+              else{
               navigation.navigate("Step4");
+              }
             }}
           >
             <Text style={styles.Step3Text}>Continue</Text>

@@ -13,15 +13,20 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function ProjectProcess(props) {
   const { navigation } = props;
+  let status = useSelector(state => state.status)
+
   const progress = 1;
-  const widthProgressBar = (progress / 3) * 100;
+  const widthProgressBar = (status / 3) * 100;
   const widthProgressBarEmpty = 100 - widthProgressBar;
   const isRecieved = true;
   const isInProgress = progress == 2 || progress == 3 ? true : false;
   const isSend = progress == 3 ? true : false;
+
+  
 
   return (
     <View style={{ backgroundColor: "#152034", height: "100%" }}>
@@ -59,7 +64,8 @@ export default function ProjectProcess(props) {
             marginBottom: 40,
           }}
         >
-          Project Recieved!
+          {status == 0 ? 'Not Received ' : status == 1 ? 'Project Recieved!' : status == 2 ? 'In Progress' : status == 3 ? 'Sent' : null }
+          
         </Text>
         <View style={styles.container2}>
           <View
@@ -88,7 +94,7 @@ export default function ProjectProcess(props) {
         >
           <Text
             style={
-              isRecieved
+              status == 1
                 ? { ...styles.selectedText }
                 : { ...styles.unSelectedText }
             }
@@ -97,7 +103,7 @@ export default function ProjectProcess(props) {
           </Text>
           <Text
             style={
-              isInProgress
+              status == 2
                 ? { ...styles.selectedText, textAlign: "center" }
                 : { ...styles.unSelectedText, textAlign: "center" }
             }
@@ -106,7 +112,7 @@ export default function ProjectProcess(props) {
           </Text>
           <Text
             style={
-              isSend
+              status == 3
                 ? { ...styles.selectedText, textAlign: "right" }
                 : { ...styles.unSelectedText, textAlign: "right" }
             }
@@ -123,8 +129,8 @@ export default function ProjectProcess(props) {
             }}
           >
             <Text style={{ textAlign: "center", color: "white" }}>
-              You will receive an email if we need anything. You Video will be
-              sent to you for revisions via email within 48 hours
+              You will receive an email if we need anything. You video will be
+              sent 
             </Text>
             <Text
               style={{
@@ -139,7 +145,7 @@ export default function ProjectProcess(props) {
           <TouchableOpacity
             style={styles.loginBtn}
             onPress={() => {
-              navigation.navigate("Login");
+              navigation.navigate("HowItWorks");
             }}
           >
             <Text style={styles.loginText}>Back Home</Text>

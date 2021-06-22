@@ -1,6 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
+import firebase from "firebase";
 import {
   StyleSheet,
   Text,
@@ -15,20 +16,43 @@ import {
 export default function EditAc(props) {
   const [email, setEmail] = useState("");
   const [companyName, setcompanyName] = useState("");
+  const [username, setUserName] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const user = firebase.auth().currentUser;
+
+  const saveNewDetails = () => {
+    firebase.firestore().collection("users").doc(user.uid).set(
+      {
+        company:companyName,
+        email:email,
+        name:username,
+        phone:phone
+      },
+      {
+        merge: true,
+      }
+    ).then(() => props.navigation.goBack())
+  };
+
   const { navigation } = props;
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={{position:'absolute', top:30,left:15}} onPress={() => navigation.goBack()}>
+      <Ionicons  name="md-arrow-back" size={24} color="white" />
+      </TouchableOpacity>
+     
       <Image
         style={styles.image}
         source={require("../assets/Background.png")}
       />
-      <StatusBar style="auto" />
-      <View style={styles.helpBtnView}>
+      <StatusBar style='auto' />
+      {/* <View style={styles.helpBtnView}>
         <TouchableOpacity style={styles.helpBtn}>
           <Text style={styles.helpText}>?</Text>
         </TouchableOpacity>
-      </View>
-
+      </View> */}
+   
       <View style={styles.formContainer}>
         <View style={styles.tabLine}>
           <View style={styles.loginTab}>
@@ -44,12 +68,12 @@ export default function EditAc(props) {
               marginLeft: 15,
             }}
           >
-            <Entypo name="user" size={20} color="#03b5f7" />
+            <Entypo name='user' size={20} color='#03b5f7' />
             <TextInput
               style={styles.TextInput}
-              placeholder="Username"
-              placeholderTextColor="#898f9c"
-              onChangeText={(name) => setName(name)}
+              placeholder='Username'
+              placeholderTextColor='#898f9c'
+              onChangeText={(name) => setUserName(name)}
             />
           </View>
         </View>
@@ -62,11 +86,11 @@ export default function EditAc(props) {
               marginLeft: 15,
             }}
           >
-            <Entypo name="mail" size={20} color="#03b5f7" />
+            <Entypo name='mail' size={20} color='#03b5f7' />
             <TextInput
               style={styles.TextInput}
-              placeholder="Email"
-              placeholderTextColor="#898f9c"
+              placeholder='Email'
+              placeholderTextColor='#898f9c'
               onChangeText={(email) => setEmail(email)}
             />
           </View>
@@ -80,13 +104,13 @@ export default function EditAc(props) {
               marginLeft: 15,
             }}
           >
-            <AntDesign name="phone" size={20} color="#03b5f7" />
+            <AntDesign name='phone' size={20} color='#03b5f7' />
             <TextInput
               style={styles.TextInput}
-              placeholder="Phone Number"
-              placeholderTextColor="#898f9c"
-              secureTextEntry={true}
-              onChangeText={(companyName) => setcompanyName(companyName)}
+              placeholder='Phone Number'
+              placeholderTextColor='#898f9c'
+              // secureTextEntry={true}
+              onChangeText={(companyName) => setPhone(companyName)}
             />
           </View>
         </View>
@@ -99,17 +123,17 @@ export default function EditAc(props) {
               marginLeft: 15,
             }}
           >
-            <AntDesign name="home" size={20} color="#03b5f7" />
+            <AntDesign name='home' size={20} color='#03b5f7' />
             <TextInput
               style={styles.TextInput}
-              placeholder="Company Name"
-              placeholderTextColor="#898f9c"
-              secureTextEntry={true}
+              placeholder='Company Name'
+              placeholderTextColor='#898f9c'
+              // secureTextEntry={true}
               onChangeText={(companyName) => setcompanyName(companyName)}
             />
           </View>
         </View>
-        <TouchableOpacity style={styles.loginBtn}>
+        <TouchableOpacity style={styles.loginBtn} onPress={saveNewDetails}>
           <Text style={styles.loginText}>Save</Text>
         </TouchableOpacity>
       </View>
@@ -178,6 +202,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     marginLeft: 20,
+    color: "white",
   },
 
   forgot_button: {

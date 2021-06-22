@@ -17,7 +17,12 @@ const Stack = createStackNavigator();
 
 const MainStackNavigator = ({ navigation }) => {
   return (
-    <Stack.Navigator initialRouteName="Step1">
+    <Stack.Navigator initialRouteName="HowItWorks">
+      <Stack.Screen
+        options={{ headerShown: false }}
+        name="HowItWorks"
+        component={HowItWorks}
+      />
       <Stack.Screen
         options={{ headerShown: false, gesturesEnabled: false }}
         name="Step1"
@@ -53,11 +58,7 @@ const MainStackNavigator = ({ navigation }) => {
         name="EditAccount"
         component={EditAccount}
       />
-      <Stack.Screen
-        options={{ headerShown: false }}
-        name="HowItWorks"
-        component={HowItWorks}
-      />
+      
       <Stack.Screen
         options={{ headerShown: false }}
         name="ProjectProcess"

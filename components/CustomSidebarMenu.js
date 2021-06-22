@@ -1,4 +1,5 @@
 import React from "react";
+import firebase from 'firebase'
 import {
   SafeAreaView,
   View,
@@ -7,7 +8,7 @@ import {
   Text,
   Linking,
 } from "react-native";
-import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Entypo, Ionicons,MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   DrawerContentScrollView,
   DrawerItemList,
@@ -37,7 +38,7 @@ const CustomSidebarMenu = (props) => {
         </Text>
       </View>
       <DrawerContentScrollView {...props}>
-        <DrawerItemList {...props} />
+        {/* <DrawerItemList {...props} /> */}
         <DrawerItem
           style={styles.customItem}
           labelStyle={styles.customItemText}
@@ -67,6 +68,15 @@ const CustomSidebarMenu = (props) => {
           onPress={() => props.navigation.navigate('HowItWorks')}
           icon={({ focused, color, size }) => (
             <AntDesign name="videocamera" size={20} color="#03b5f7" />
+          )}
+        />
+        <DrawerItem
+          style={styles.customItem}
+          labelStyle={styles.customItemText}
+          label="Sign Out"
+          onPress={() => firebase.auth().signOut() }
+          icon={({ focused, color, size }) => (
+            <MaterialCommunityIcons name="logout" size={24} color="#03b5f7" />
           )}
         />
       </DrawerContentScrollView>
