@@ -22,7 +22,10 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   return (
     // <Login/>
-    <StripeProvider merchantIdentifier='merchant.identifier' publishableKey="pk_test_NrYGFq8O69eYxgIkI67lzp1m00G2cfXPCS">
+    <StripeProvider
+      // merchantIdentifier='merchant.identifier'
+      publishableKey='pk_live_N3H5rXOlTb75keITEO2y2hn900h0596QaZ'
+    >
       <StoreProvider store={store}>
         <StartScreen />
       </StoreProvider>

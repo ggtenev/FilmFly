@@ -8,7 +8,6 @@ import { WebView } from "react-native-webview";
 import {
   StyleSheet,
   Text,
-
   View,
   Image,
   TextInput,
@@ -26,7 +25,11 @@ import {
   CLEAN_STORE,
 } from "../../redux/InputFlow";
 
-import { CardField, useStripe, useConfirmPayment } from "@stripe/stripe-react-native";
+import {
+  CardField,
+  useStripe,
+  useConfirmPayment,
+} from "@stripe/stripe-react-native";
 
 export default function Step6(props) {
   const [currentOrders, setCurentOrders] = useState([]);
@@ -34,8 +37,11 @@ export default function Step6(props) {
   const [makePayment, setMakePayment] = useState(false);
   const [paymentStauts, setPaymentStatus] = useState();
   const [web, setWeb] = useState(false);
+  const [cardDetails, setCardDetails] = useState();
+  const { confirmPayment, loading } = useConfirmPayment();
   const [stripeKey, setStripeKSey] = useState();
-  const { confirmPayment} = useStripe();
+
+  // const { confirmPayment } = useStripe();
 
   const htmlContent = "<h1>Heklowgg</h1>";
 
@@ -74,7 +80,9 @@ export default function Step6(props) {
 
   let manual = useSelector((state) => state.manual);
   let previousOrders = useSelector((state) => state.previousOrders);
-  let email = useSelector((state) => state.email);
+  let [email, setEmail] = useState("");
+
+  let userEmail = firebase.auth().currentUser.email;
 
   const dispatch = useDispatch();
   let userID = firebase.auth().currentUser.uid;
@@ -108,53 +116,93 @@ export default function Step6(props) {
     return true;
   };
 
-  useEffect( () => {
-    fetch(
+  const API_URL = "http://localhost:3000/createIntent";
+
+  const fetchClientIntentClientSecret = async () => {
+    const response = await fetch(
       "https://us-central1-film-fly-app.cloudfunctions.net/intentFunction/createIntent",
       {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          currency: 'usd',
-        }),
+        // body: JSON.stringify({
+        //   currency: "usd",
+        // }),
       }
-    )
-      .then((res) => {
-        res.json().then((res) => {
-          console.log('INTENT',res);
-          setStripeKSey(res.clientSecret); 
-        })
-      })
-      
+    );
 
-    return;
-  }, []);
+    const { clientSecret, error } = await response.json();
+    console.log(clientSecret, error);
+    return { clientSecret, error };
+  };
+
+  // useEffect(() => {
+  //   fetch(
+  //     "https://us-central1-film-fly-app.cloudfunctions.net/intentFunction",
+  //     {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         currency: "usd",
+  //       }),
+  //     }
+  //   ).then((res) => {
+  //     res.json().then((res) => {
+  //       console.log("INTENT", res);
+  //       setStripeKSey(res.clientSecret);
+  //     });
+  //   });
+
+  //   return;
+  // }, []);
 
   const uploadVideos = async () => {
     const urls = [];
 
-
-    const response = await confirmPayment(stripeKey, {
-        type: "Card",
-        billingDetails: {
-          email: firebase.auth().currentUser.email,
-        },
-      })
-    
-      console.log('RESPO',response)
-
-  
-    if (response.error) {
-      Alert.alert("Payment unsuccessfull");
-      console.log(response.error)
+    if (!cardDetails?.complete) {
+      Alert.alert("Please enter your card details and email!");
       return;
-    } else {
-      Alert.alert('Payment was successful')
     }
-     
-    
+
+    const billingDetails = {
+      email: userEmail,
+    };
+
+    try {
+      const { clientSecret, error } = await fetchClientIntentClientSecret();
+      if (error) {
+        Alert.alert("Unable to process payment");
+        return;
+      } else {
+        const { paymentIntent, error } = await confirmPayment(clientSecret, {
+          type: "Card",
+          billingDetails: {
+            email: userEmail,
+          },
+        });
+        if (error) {
+          Alert.alert(`Payment Confirmation Error: ${error.message}`);
+          return;
+        } else if (paymentIntent) {
+          Alert.alert("Payment successful");
+          console.log(paymentIntent);
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+
+    // const response = await confirmPayment(stripeKey, {
+    //   type: "Card",
+    //   billingDetails: {
+    //     email: userEmail,
+    //   },
+    // });
+
+    // console.log("RESPO", response);
 
     videos.forEach(async (v) => {
       const response = await fetch(v.videoURL);
@@ -177,7 +225,7 @@ export default function Step6(props) {
           firebase
             .firestore()
             .collection("users")
-            .doc(user.uid)
+            .doc(`${userEmail}${user.uid}`)
             .set(
               {
                 orders: [
@@ -206,17 +254,20 @@ export default function Step6(props) {
         email: firebase.auth().currentUser.email,
       })
       .then(() => {
-        dispatch({type:CLEAN_STORE,payload:''})
+        dispatch({ type: CLEAN_STORE, payload: "" });
         props.navigation.navigate("ProjectProcess");
       });
 
-
-    
+    // if (response.error) {
+    //   Alert.alert("Payment unsuccessfull");
+    //   console.log(response.error);
+    //   return;
+    // } else {
+    //   Alert.alert("Payment was successful");
+    // }
   };
   const totalSteps = 6;
   const currentIndex = 5;
-
-
 
   const getHeaderStepsIndicators = () => {
     let counter = totalSteps - (currentIndex + 1);
@@ -321,59 +372,56 @@ export default function Step6(props) {
 
         {manual ? null : (
           <View style={{ ...styles.formContainer, marginTop: 25 }}>
-             <View style={styles.tabLine}>
-            <View>
-              <View style={styles.Step6Tab}>
-                <Text style={styles.Step6TabText}>Checkout</Text>
-                <Text style={styles.Step6TabTextMini}>Powered by Stripe</Text>
+            <View style={styles.tabLine}>
+              <View>
+                <View style={styles.Step6Tab}>
+                  <Text style={styles.Step6TabText}>Checkout</Text>
+                  <Text style={styles.Step6TabTextMini}>Powered by Stripe</Text>
+                </View>
               </View>
             </View>
-          </View>
-          <View style={styles.inputView}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginLeft: 15,
-                    }}
-                  >
-                    <AntDesign name="user" size={20} color="#03b5f7" />
-                    <TextInput
-                      style={styles.TextInput}
-                      placeholder="Cardholder Name"
-                      placeholderTextColor="#898f9c"
-                      value={cardholderName}
-                      onChangeText={onChangeCardHolderName}
-                    />
-                  </View>
-                </View>
+            <View style={styles.inputView}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginLeft: 15,
+                }}
+              >
+                <AntDesign name='user' size={20} color='#03b5f7' />
+                <TextInput
+                  style={styles.TextInput}
+                  placeholder='Cardholder Name'
+                  placeholderTextColor='#898f9c'
+                  value={cardholderName}
+                  onChangeText={(t) => setEmail(t)}
+                  value={email}
+                />
+              </View>
+            </View>
             <CardField
               postalCodeEnabled={false}
               placeholder={{
                 number: "4242 4242 4242 4242",
               }}
               cardStyle={{
-         
                 backgroundColor: "white",
                 textColor: "black",
               }}
               style={{
-        
-                
                 width: "100%",
                 height: 50,
                 marginVertical: 30,
               }}
               onCardChange={(cardDetails) => {
-                console.log("cardDetails", cardDetails);
+                setCardDetails(cardDetails);
               }}
               onFocus={(focusedField) => {
                 console.log("focusField", focusedField);
               }}
             />
 
-           
-          {/* <View style={styles.whatYouGet}>
+            {/* <View style={styles.whatYouGet}>
             <View style={styles.whatYouGetRow}>
               <View style={styles.whatYouGetItem}>
                 <View style={styles.inputView}>
@@ -500,6 +548,7 @@ export default function Step6(props) {
           </TouchableOpacity>
 
           <TouchableOpacity
+            disabled={loading}
             style={styles.Step6Btn}
             onPress={() => {
               uploadVideos();

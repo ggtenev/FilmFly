@@ -1,8 +1,8 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState, useEffect } from "react";
 import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
-import firebase from 'firebase'
-import {useDispatch,useSelector} from 'react-redux'
+import firebase from "firebase";
+import { useDispatch, useSelector } from "react-redux";
 import {
   StyleSheet,
   Text,
@@ -24,19 +24,23 @@ export default function HowItWorks(props) {
     { text: "Download your completed video" },
   ];
 
-  const manual = useSelector(state => state.manual)
+  const manual = useSelector((state) => state.manual);
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
-  const userId = firebase.auth().currentUser.uid
+  const userId = firebase.auth().currentUser.uid;
+  const userEmail = firebase.auth().currentUser.email;
   useEffect(() => {
-    firebase.firestore().collection('users').doc(userId).onSnapshot(doc => {
-      console.log(doc.data())
-      dispatch({ type: FECTH_USER_STATUS, userData: doc.data()});
-    })
-    return
-  }, []) 
-
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(`${userEmail}${userId}`)
+      .onSnapshot((doc) => {
+        console.log(doc.data());
+        dispatch({ type: FECTH_USER_STATUS, userData: doc.data() });
+      });
+    return;
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -44,13 +48,13 @@ export default function HowItWorks(props) {
         style={styles.image}
         source={require("../assets/Background.png")}
       />
-      <StatusBar style="auto" />
+      <StatusBar style='auto' />
       <View style={styles.helpBtnView}>
         <TouchableOpacity style={styles.helpBtn}>
           <AntDesign
-            name="menu-unfold"
+            name='menu-unfold'
             size={20}
-            color="#03b5f7"
+            color='#03b5f7'
             onPress={() => {
               props.navigation.toggleDrawer();
             }}
@@ -68,7 +72,10 @@ export default function HowItWorks(props) {
         <View style={styles.innerView}>
           {list.map((item, index) => {
             return (
-              <View key={index} style={{ flexDirection: "row", marginBottom: 10 }}>
+              <View
+                key={index}
+                style={{ flexDirection: "row", marginBottom: 10 }}
+              >
                 <View style={styles.indexView}>
                   <Text style={styles.indexText}>{index + 1}</Text>
                 </View>
@@ -80,7 +87,9 @@ export default function HowItWorks(props) {
           })}
         </View>
         <View style={styles.midCircle}>
-          <Text style={styles.midCircleText}>{manual ? 'Cost: $0' : 'Cost: $99'}</Text>
+          <Text style={styles.midCircleText}>
+            {manual ? "Cost: $0" : "Cost: $99"}
+          </Text>
         </View>
         <TouchableOpacity
           style={styles.loginBtn}

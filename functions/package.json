@@ -1,6 +1,5 @@
 {
   "name": "functions",
-
   "description": "Cloud Functions for Firebase",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
@@ -9,7 +8,6 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
-  
   "engines": {
     "node": "14"
   },
