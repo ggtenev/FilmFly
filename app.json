@@ -18,15 +18,15 @@
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "identiyygs",
+          "merchantIdentifier": "U7Q85V7DF8",
           "enableGooglePay": true
         }
       ]
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.gofilmfly.filmfly",
-      "buildNumber": "3.0.0"
+      "bundleIdentifier": "com.gofilmfly.filmflymy",
+      "buildNumber": "1.2.0"
     },
     "android": {
       "package": "com.app.filmflymobileapp",
