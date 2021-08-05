@@ -26,7 +26,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.app.filmflymobileapp",
-      "buildNumber": "1.5.0"
+      "buildNumber": "1.5.0",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app is able to attach photos from your photo library",
+        "NSCameraUsageDescription": "This app uses the camera to make a photo"
+      }
     },
     "android": {
       "package": "com.app.filmflymobileapp",
