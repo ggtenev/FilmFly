@@ -9,24 +9,22 @@ import {
   ScrollView,
 } from "react-native";
 import { Checkbox } from "react-native-paper";
-import {useDispatch,useSelector} from 'react-redux';
-import {SET_AGREED_TO_TERMS} from '../../redux/InputFlow';
-import * as Linking from 'expo-linking';
-
+import { useDispatch, useSelector } from "react-redux";
+import { SET_AGREED_TO_TERMS } from "../../redux/InputFlow";
+import * as Linking from "expo-linking";
 
 export default function Step5(props) {
+  let agreedToTerms = useSelector((state) => state.agreedToTerms);
 
-  let agreedToTerms = useSelector(state=>state.agreedToTerms)
-
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const { navigation } = props;
 
   const onChangeCheckBox = () => {
     dispatch({
-      type:SET_AGREED_TO_TERMS,
-      payload:!agreedToTerms
-    })
+      type: SET_AGREED_TO_TERMS,
+      payload: !agreedToTerms,
+    });
   };
   const totalSteps = 6;
   const currentIndex = 4;
@@ -61,9 +59,9 @@ export default function Step5(props) {
             Step {currentIndex + 1}/{totalSteps}
           </Text>
           <AntDesign
-            name="menu-unfold"
+            name='menu-unfold'
             size={20}
-            color="#03b5f7"
+            color='#03b5f7'
             onPress={() => {
               navigation.toggleDrawer();
             }}
@@ -113,10 +111,20 @@ export default function Step5(props) {
               marginBottom: 30,
             }}
           >
-            <View style={{ marginTop: -5 }}>
+            <View
+              style={{
+                // marginTop: -5,
+                marginRight: 10,
+                backgroundColor: "black",
+                height: 33,
+                width: 33,
+                opacity: 0.2,
+                borderRadius: 16,
+              }}
+            >
               <Checkbox
-                color="#00bbff"
-                uncheckedColor="gray"
+                color='white'
+                uncheckedColor='gray'
                 status={agreedToTerms ? "checked" : "unchecked"}
                 onPress={onChangeCheckBox}
               />
@@ -126,11 +134,24 @@ export default function Step5(props) {
               <Text style={{ color: "white", fontSize: 15 }}>
                 I have duly sworn that I have read, understood and fully
                 accepted the{" "}
-             
-                <Text style={{ color: "#00bbff" }} onPress={() => Linking.openURL('https://gofilmfly.com/terms')}> terms and conditions</Text>{" "}
+                <Text
+                  style={{ color: "#00bbff" }}
+                  onPress={() => Linking.openURL("https://gofilmfly.com/terms")}
+                >
+                  {" "}
+                  terms and conditions
+                </Text>{" "}
                 and
-                <Text style={{ color: "#00bbff" }} onPress={() => Linking.openURL('https://gofilmfly.com/privacy')}> privacy policy </Text>of
-                Filmy Fly{" "}
+                <Text
+                  style={{ color: "#00bbff" }}
+                  onPress={() =>
+                    Linking.openURL("https://gofilmfly.com/privacy")
+                  }
+                >
+                  {" "}
+                  privacy policy{" "}
+                </Text>
+                of Filmy Fly{" "}
               </Text>
               <Text style={{ color: "gray", fontSize: 15, marginTop: 10 }}>
                 All stock footage, audio, and other content added by Film Fly is
@@ -153,8 +174,7 @@ export default function Step5(props) {
             style={styles.Step5Btn}
             disabled={!agreedToTerms}
             onPress={() => {
-              if(agreedToTerms)
-              navigation.navigate("Step6");
+              if (agreedToTerms) navigation.navigate("Step6");
             }}
           >
             <Text style={styles.Step5Text}>Continue</Text>

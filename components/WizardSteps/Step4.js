@@ -1,4 +1,4 @@
-import React,{useState} from "react";
+import React, { useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import {
   StyleSheet,
@@ -9,41 +9,39 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import {useDispatch,useSelector} from 'react-redux';
-import {SET_ABOUT_VIDEO,SET_VIDEO_TEXT} from '../../redux/InputFlow';
+import { useDispatch, useSelector } from "react-redux";
+import { SET_ABOUT_VIDEO, SET_VIDEO_TEXT } from "../../redux/InputFlow";
 
 export default function Step4(props) {
+  let videoText = useSelector((state) => state.videoText);
+  let aboutVideo = useSelector((state) => state.aboutVideo);
 
-  let videoText = useSelector(state=>state.videoText);
-  let aboutVideo = useSelector(state=>state.aboutVideo);
+  const [forbiddenMoveForward, setForbiddenMoveForward] = useState(false);
 
-  
-  const [forbiddenMoveForward,setForbiddenMoveForward] = useState(false);
-
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const { navigation } = props;
 
   const onChangeVideoText = (text) => {
     dispatch({
-      type:SET_VIDEO_TEXT,
-      payload:text
-    })
-    if(text==""){
-      setForbiddenMoveForward(true)
-    }else if(text!=="" && aboutVideo!==""){
-      setForbiddenMoveForward(false)
+      type: SET_VIDEO_TEXT,
+      payload: text,
+    });
+    if (text == "") {
+      setForbiddenMoveForward(true);
+    } else if (text !== "" && aboutVideo !== "") {
+      setForbiddenMoveForward(false);
     }
   };
   const onChangeAboutVideo = (text) => {
     dispatch({
-      type:SET_ABOUT_VIDEO,
-      payload:text
-    })
-    if(text==""){
-      setForbiddenMoveForward(true)
-    }else if(text!=="" && videoText!==""){
-      setForbiddenMoveForward(false)
+      type: SET_ABOUT_VIDEO,
+      payload: text,
+    });
+    if (text == "") {
+      setForbiddenMoveForward(true);
+    } else if (text !== "" && videoText !== "") {
+      setForbiddenMoveForward(false);
     }
   };
   const totalSteps = 6;
@@ -79,9 +77,9 @@ export default function Step4(props) {
             Step {currentIndex + 1}/{totalSteps}
           </Text>
           <AntDesign
-            name="menu-unfold"
+            name='menu-unfold'
             size={20}
-            color="#03b5f7"
+            color='#03b5f7'
             onPress={() => {
               navigation.toggleDrawer();
             }}
@@ -132,15 +130,11 @@ export default function Step4(props) {
                 marginLeft: 15,
               }}
             >
-              <Text
-                style={{ fontFamily: "serif", fontSize: 21, color: "white" }}
-              >
-                T
-              </Text>
+              <Text style={{ fontSize: 21, color: "white" }}>T</Text>
               <TextInput
-                style={styles.TextInput}
-                placeholder="Type here"
-                placeholderTextColor="#898f9c"
+                style={{ ...styles.TextInput, marginTop: 18 }}
+                placeholder='Type here'
+                placeholderTextColor='#898f9c'
                 numberOfLines={5}
                 multiline={true}
                 value={videoText}
@@ -170,7 +164,7 @@ export default function Step4(props) {
             >
               <Text
                 style={{
-                  fontFamily: "serif",
+                  // fontFamily: "serif",
                   fontSize: 21,
                   color: "white",
                   marginTop: 4,
@@ -180,12 +174,12 @@ export default function Step4(props) {
               </Text>
               <TextInput
                 style={styles.TextInputLarge}
-                placeholder="Type here"
-                placeholderTextColor="#898f9c"
+                placeholder='Type here'
+                placeholderTextColor='#898f9c'
                 multiline={true}
                 value={aboutVideo}
                 onChangeText={onChangeAboutVideo}
-                textAlign="left"
+                textAlign='left'
               />
             </View>
           </View>
@@ -204,10 +198,9 @@ export default function Step4(props) {
             style={styles.Step4Btn}
             disabled={forbiddenMoveForward}
             onPress={() => {
-              if(aboutVideo =="" || videoText ==""){
-                setForbiddenMoveForward(true)
-              }
-              else{
+              if (aboutVideo == "" || videoText == "") {
+                setForbiddenMoveForward(true);
+              } else {
                 navigation.navigate("Step5");
               }
             }}
