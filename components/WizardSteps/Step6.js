@@ -38,23 +38,12 @@ export default function Step6(props) {
   const [paymentStauts, setPaymentStatus] = useState();
   const [web, setWeb] = useState(false);
   const [cardDetails, setCardDetails] = useState();
+  //COMMENED
   const { confirmPayment, loading } = useConfirmPayment();
   const [stripeKey, setStripeKSey] = useState();
 
+  //COMMENED
   // const { confirmPayment } = useStripe();
-
-  const htmlContent = "<h1>Heklowgg</h1>";
-
-  if (web) {
-    return (
-      <WebView
-        javaScriptEnabled={true}
-        style={{ flex: 1 }}
-        originWhitelist={["*"]}
-        source={{ html: htmlContent }}
-      />
-    );
-  }
 
   // useEffect(() => {
   //   firebase.firestore().collection('users').doc(user.uid).get().then(doc => {
@@ -126,9 +115,9 @@ export default function Step6(props) {
         headers: {
           "Content-Type": "application/json",
         },
-        // body: JSON.stringify({
-        //   currency: "usd",
-        // }),
+        body: JSON.stringify({
+          currency: "usd",
+        }),
       }
     );
 
@@ -137,27 +126,27 @@ export default function Step6(props) {
     return { clientSecret, error };
   };
 
-  // useEffect(() => {
-  //   fetch(
-  //     "https://us-central1-film-fly-app.cloudfunctions.net/intentFunction",
-  //     {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         currency: "usd",
-  //       }),
-  //     }
-  //   ).then((res) => {
-  //     res.json().then((res) => {
-  //       console.log("INTENT", res);
-  //       setStripeKSey(res.clientSecret);
-  //     });
-  //   });
+  useEffect(() => {
+    fetch(
+      "https://us-central1-film-fly-app.cloudfunctions.net/intentFunction",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currency: "usd",
+        }),
+      }
+    ).then((res) => {
+      res.json().then((res) => {
+        console.log("INTENT", res);
+        setStripeKSey(res.clientSecret);
+      });
+    });
 
-  //   return;
-  // }, []);
+    return;
+  }, []);
 
   const uploadVideos = async () => {
     const urls = [];
@@ -548,7 +537,7 @@ export default function Step6(props) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            disabled={loading}
+            // disabled={loading}
             style={styles.Step6Btn}
             onPress={() => {
               uploadVideos();
@@ -705,7 +694,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   Step6Tab: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 1,
     padding: 5,
     paddingBottom: 15,
     borderColor: "#FFFFFF",
