@@ -30,17 +30,17 @@ export default function HowItWorks(props) {
 
   const userId = firebase.auth().currentUser.uid;
   const userEmail = firebase.auth().currentUser.email;
-  useEffect(() => {
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(`${userEmail}${userId}`)
-      .onSnapshot((doc) => {
-        console.log(doc.data());
-        dispatch({ type: FECTH_USER_STATUS, userData: doc.data() });
-      });
-    return;
-  }, []);
+  // useEffect(() => {
+  //   firebase
+  //     .firestore()
+  //     .collection("users")
+  //     .doc(`${userEmail}${userId}`)
+  //     .onSnapshot((doc) => {
+  //       console.log(doc.data());
+  //       dispatch({ type: FECTH_USER_STATUS, userData: doc.data() });
+  //     });
+  //   return;
+  // }, []);
 
   return (
     <View style={styles.container}>
@@ -87,9 +87,9 @@ export default function HowItWorks(props) {
           })}
         </View>
         <View style={styles.midCircle}>
-          <Text style={styles.midCircleText}>
+          {/* <Text style={styles.midCircleText}>
             {manual ? "Cost: $0" : "Cost: $99"}
-          </Text>
+          </Text> */}
         </View>
         <TouchableOpacity
           style={styles.loginBtn}
