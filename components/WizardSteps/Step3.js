@@ -10,41 +10,40 @@ import {
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import Slider from "@react-native-community/slider";
-import {useDispatch,useSelector} from 'react-redux';
-import {SET_VIDEO_LENGTH,SET_VIDEO_ORIENTATION} from '../../redux/InputFlow';
+import { useDispatch, useSelector } from "react-redux";
+import { SET_VIDEO_LENGTH, SET_VIDEO_ORIENTATION } from "../../redux/InputFlow";
 
 export default function Step3(props) {
+  let videoLength = useSelector((state) => state.videoLength);
+  let videoOrientation = useSelector((state) => state.videoOrientation);
+  let manual = useSelector((state) => state.manual);
 
-  let videoLength = useSelector(state=>state.videoLength)
-  let videoOrientation = useSelector(state=>state.videoOrientation)
-  let manual = useSelector(state => state.manual)
+  const [forbiddenMoveForward, setForbiddenMoveForward] = useState(false);
 
-  const [forbiddenMoveForward,setForbiddenMoveForward] = useState(false);
+  const dispatch = useDispatch();
 
-  const dispatch = useDispatch()
-
-  const [position, setPosition] = useState(videoLength?videoLength*19:3);
+  const [position, setPosition] = useState(videoLength ? videoLength * 19 : 3);
 
   const { navigation } = props;
 
   const onChangeSlider = (value) => {
     setPosition(value * 19);
     dispatch({
-      type:SET_VIDEO_LENGTH,
-      payload:value
-    })
-    if(value==0){
+      type: SET_VIDEO_LENGTH,
+      payload: value,
+    });
+    if (value == 0) {
       setForbiddenMoveForward(true);
-    }else{
+    } else {
       setForbiddenMoveForward(false);
     }
   };
 
   const onRadioClicked = (value) => {
     dispatch({
-      type:SET_VIDEO_ORIENTATION,
-      payload:value
-    })
+      type: SET_VIDEO_ORIENTATION,
+      payload: value,
+    });
   };
   const totalSteps = 6;
   const currentIndex = 2;
@@ -79,9 +78,9 @@ export default function Step3(props) {
             Step {currentIndex + 1}/{totalSteps}
           </Text>
           <AntDesign
-            name="menu-unfold"
+            name='menu-unfold'
             size={20}
-            color="#03b5f7"
+            color='#03b5f7'
             onPress={() => {
               navigation.toggleDrawer();
             }}
@@ -118,79 +117,79 @@ export default function Step3(props) {
         </View>
         {!manual && (
           <View style={styles.formContainer}>
-          <View style={styles.tabLine}>
-            <View>
-              <View style={styles.Step3Tab}>
-                <Text style={styles.Step3TabText}>
-                  How long do you want your video?
-                </Text>
-                <Text style={styles.Step3TabSubText}>5 Miutes Max</Text>
-              </View>
+            <View style={styles.tabLine}>
+              <View>
+                <View style={styles.Step3Tab}>
+                  <Text style={styles.Step3TabText}>
+                    How long do you want your video?
+                  </Text>
+                  <Text style={styles.Step3TabSubText}>5 Miutes Max</Text>
+                </View>
 
-              <Slider
-                style={{
-                  width: "100%",
-                  alignSelf: "center",
-                  height: 20,
-                  marginTop: 20,
-                  marginLeft: 5,
-                  transform: [{ scaleX: 1 }, { scaleY: 1 }],
-                }}
-                minimumValue={0}
-                maximumValue={5}
-                step={1}
-                value={videoLength}
-                minimumTrackTintColor="#00bbff"
-                maximumTrackTintColor="gray"
-                thumbTintColor="#00bbff"
-                onValueChange={onChangeSlider}
-              />
-              <View
-                style={{
-                  width: 0,
-                  height: 0,
-                  marginLeft: position + "%",
-                  marginBottom: 10,
-                  borderLeftWidth: 10,
-                  borderRightWidth: 10,
-                  borderBottomWidth: 10,
-                  borderStyle: "solid",
-                  backgroundColor: "transparent",
-                  borderLeftColor: "transparent",
-                  borderRightColor: "transparent",
-                  borderBottomColor: "#00bbff",
-                }}
-              >
+                <Slider
+                  style={{
+                    width: "100%",
+                    alignSelf: "center",
+                    height: 20,
+                    marginTop: 20,
+                    marginLeft: 5,
+                    transform: [{ scaleX: 1 }, { scaleY: 1 }],
+                  }}
+                  minimumValue={0}
+                  maximumValue={5}
+                  step={1}
+                  value={videoLength}
+                  minimumTrackTintColor='#00bbff'
+                  maximumTrackTintColor='gray'
+                  thumbTintColor='#00bbff'
+                  onValueChange={onChangeSlider}
+                />
                 <View
                   style={{
-                    height: 25,
-                    width: 50,
-                    borderRadius: 5,
-                    marginTop: 10,
-                    backgroundColor: "#00bbff",
-                    alignSelf: "center",
-                    padding: 5,
+                    width: 0,
+                    height: 0,
+                    marginLeft: position + "%",
+                    marginBottom: 10,
+                    borderLeftWidth: 10,
+                    borderRightWidth: 10,
+                    borderBottomWidth: 10,
+                    borderStyle: "solid",
+                    backgroundColor: "transparent",
+                    borderLeftColor: "transparent",
+                    borderRightColor: "transparent",
+                    borderBottomColor: "#00bbff",
                   }}
                 >
-                  <Text
+                  <View
                     style={{
-                      color: "white",
+                      height: 25,
+                      width: 50,
+                      borderRadius: 5,
+                      marginTop: 10,
+                      backgroundColor: "#00bbff",
                       alignSelf: "center",
-                      fontSize: 10,
+                      padding: 5,
                     }}
                   >
-                    {videoLength} mins
-                  </Text>
+                    <Text
+                      style={{
+                        color: "white",
+                        alignSelf: "center",
+                        fontSize: 10,
+                      }}
+                    >
+                      {videoLength} mins
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
         )}
-        
+
         <View style={styles.formContainer}>
           <View style={styles.tabLine}>
-            <View>
+            {/* <View>
               <View style={styles.Step3Tab}>
                 <Text style={styles.Step3TabText}>
                   Choose Your Video Orientation
@@ -215,7 +214,7 @@ export default function Step3(props) {
                   value="VERTICAL"
                 />
               </RadioButton.Group>
-            </View>
+            </View> */}
           </View>
         </View>
         <View style={styles.bottomButtonGroup}>
@@ -232,11 +231,10 @@ export default function Step3(props) {
             style={styles.Step3Btn}
             disabled={forbiddenMoveForward}
             onPress={() => {
-              if(videoLength==0 && !manual){
+              if (videoLength == 0 && !manual) {
                 setForbiddenMoveForward(true);
-              }
-              else{
-              navigation.navigate("Step4");
+              } else {
+                navigation.navigate("Step4");
               }
             }}
           >

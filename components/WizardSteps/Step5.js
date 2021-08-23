@@ -111,7 +111,7 @@ export default function Step5(props) {
               marginBottom: 30,
             }}
           >
-            <View
+            {/* <View
               style={{
                 // marginTop: -5,
                 marginRight: 10,
@@ -128,7 +128,7 @@ export default function Step5(props) {
                 status={agreedToTerms ? "checked" : "unchecked"}
                 onPress={onChangeCheckBox}
               />
-            </View>
+            </View> */}
 
             <View style={{ flexDirection: "column", width: "80%" }}>
               <Text style={{ color: "white", fontSize: 15 }}>
