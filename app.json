@@ -33,7 +33,7 @@
       }
     },
     "android": {
-      "package": "com.app.filmflymobileapp",
+      "package": "com.app.filmflywhynot",
       "permissions": ["CAMERA", "WRITE_EXTERNAL_STORAGE"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
