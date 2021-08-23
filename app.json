@@ -25,7 +25,7 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.app.filmflywhynot",
+      "bundleIdentifier": "com.app.filmflymobileapp",
       "buildNumber": "1.9.9",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app is able to attach photos from your photo library",
@@ -33,7 +33,7 @@
       }
     },
     "android": {
-      "package": "com.app.filmflywhynot",
+      "package": "com.app.filmflymobileapp",
       "permissions": ["CAMERA", "WRITE_EXTERNAL_STORAGE"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
