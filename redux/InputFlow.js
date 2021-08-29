@@ -43,15 +43,14 @@ const inputFlowReducer = (state = initialState, action) => {
         ...state,
         videos: [...state.videos, action.payload],
       };
-      case RESET_PROJECT_TITLE:
-        const editedVideos = [...state.videos]
-        editedVideos[action.payload.idx].title = action.payload.newTitle
-        return {
-          ...state,
-          videos:editedVideos
-        }
+    case RESET_PROJECT_TITLE:
+      const editedVideos = [...state.videos];
+      editedVideos[action.payload.idx].title = action.payload.newTitle;
+      return {
+        ...state,
+        videos: editedVideos,
+      };
 
-    
     case CLEAN_STORE:
       return {
         isLoggedIn: false,
@@ -72,7 +71,7 @@ const inputFlowReducer = (state = initialState, action) => {
         previousOrders: [],
       };
     case FECTH_USER_STATUS:
-    //   console.log("MANUAL", action.userData.orders);
+      //   console.log("MANUAL", action.userData.orders);
       return {
         ...state,
         manual: action.userData.manual,

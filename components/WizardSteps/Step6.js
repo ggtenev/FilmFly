@@ -128,7 +128,7 @@ export default function Step6(props) {
 
   useEffect(() => {
     fetch(
-      "https://us-central1-film-fly-app.cloudfunctions.net/intentFunction",
+      "https://us-central1-film-fly-app.cloudfunctions.net/intentFunction/createIntent",
       {
         method: "POST",
         headers: {

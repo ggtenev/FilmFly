@@ -130,9 +130,9 @@ export default function Step4(props) {
                 marginLeft: 15,
               }}
             >
-              <Text style={{ fontSize: 21, color: "white" }}>T</Text>
+              {/* <Text style={{ fontSize: 21, color: "white" }}>T</Text> */}
               <TextInput
-                style={{ ...styles.TextInput, marginTop: 18 }}
+                style={{ ...styles.TextInput, marginTop: 1 }}
                 placeholder='Type here'
                 placeholderTextColor='#898f9c'
                 numberOfLines={5}
@@ -162,7 +162,7 @@ export default function Step4(props) {
                 marginLeft: 15,
               }}
             >
-              <Text
+              {/* <Text
                 style={{
                   // fontFamily: "serif",
                   fontSize: 21,
@@ -171,7 +171,7 @@ export default function Step4(props) {
                 }}
               >
                 T
-              </Text>
+              </Text> */}
               <TextInput
                 style={styles.TextInputLarge}
                 placeholder='Type here'

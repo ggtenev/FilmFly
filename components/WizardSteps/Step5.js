@@ -14,6 +14,7 @@ import { SET_AGREED_TO_TERMS } from "../../redux/InputFlow";
 import * as Linking from "expo-linking";
 
 export default function Step5(props) {
+  const [checked, setChecked] = useState(false);
   let agreedToTerms = useSelector((state) => state.agreedToTerms);
 
   const dispatch = useDispatch();
@@ -111,24 +112,36 @@ export default function Step5(props) {
               marginBottom: 30,
             }}
           >
-            {/* <View
+            <View
               style={{
                 // marginTop: -5,
                 marginRight: 10,
-                backgroundColor: "black",
+                // backgroundColor: "grey",
                 height: 33,
                 width: 33,
-                opacity: 0.2,
+                // opacity: 0.2,
                 borderRadius: 16,
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              <Checkbox
+              <TouchableOpacity
+                onPress={() => {
+                  setChecked(!checked);
+                }}
+                style={{
+                  ...styles.radioBtn,
+
+                  backgroundColor: checked ? "#00bbff" : "#272E42",
+                }}
+              ></TouchableOpacity>
+              {/* <Checkbox
                 color='white'
                 uncheckedColor='gray'
                 status={agreedToTerms ? "checked" : "unchecked"}
                 onPress={onChangeCheckBox}
-              />
-            </View> */}
+              /> */}
+            </View>
 
             <View style={{ flexDirection: "column", width: "80%" }}>
               <Text style={{ color: "white", fontSize: 15 }}>
@@ -172,9 +185,9 @@ export default function Step5(props) {
 
           <TouchableOpacity
             style={styles.Step5Btn}
-            disabled={!agreedToTerms}
+            disabled={!checked}
             onPress={() => {
-              if (agreedToTerms) navigation.navigate("Step6");
+              if (checked) navigation.navigate("Step6");
             }}
           >
             <Text style={styles.Step5Text}>Continue</Text>
@@ -257,6 +270,17 @@ const styles = StyleSheet.create({
   image: {
     marginTop: 20,
     marginBottom: 30,
+  },
+  radioBtn: {
+    width: 15,
+    height: 15,
+    borderRadius: 8,
+    padding: 1,
+    borderWidth: 0.8,
+    borderColor: "white",
+    marginVertical: 11,
+    backgroundColor: "#00bbff",
+    flexDirection: "row",
   },
   tabLine: {
     padding: 10,

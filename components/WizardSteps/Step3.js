@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { Radio } from "native-base";
 import { RadioButton } from "react-native-paper";
 import Slider from "@react-native-community/slider";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +18,7 @@ export default function Step3(props) {
   let videoLength = useSelector((state) => state.videoLength);
   let videoOrientation = useSelector((state) => state.videoOrientation);
   let manual = useSelector((state) => state.manual);
+  const [radio, setRadio] = useState("horizontal");
 
   const [forbiddenMoveForward, setForbiddenMoveForward] = useState(false);
 
@@ -189,32 +191,65 @@ export default function Step3(props) {
 
         <View style={styles.formContainer}>
           <View style={styles.tabLine}>
-            {/* <View>
+            <View>
               <View style={styles.Step3Tab}>
                 <Text style={styles.Step3TabText}>
                   Choose Your Video Orientation
                 </Text>
               </View>
-              <RadioButton.Group
+              <View style={{ marginLeft: 15, marginTop: 5 }}>
+                <View style={styles.radioContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      onRadioClicked("HORIZONTAL");
+                      setRadio("horizontal");
+                    }}
+                    style={{
+                      ...styles.radioBtn,
+
+                      backgroundColor:
+                        radio == "horizontal" ? "#00bbff" : "#272E42",
+                    }}
+                  ></TouchableOpacity>
+                  <Text style={styles.radioText}>Horizontal </Text>
+                </View>
+                <View style={styles.radioContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      onRadioClicked("VERTICAL");
+                      setRadio("vertical");
+                    }}
+                    style={{
+                      ...styles.radioBtn,
+
+                      backgroundColor:
+                        radio == "vertical" ? "#00bbff" : "#272E42",
+                    }}
+                  ></TouchableOpacity>
+                  <Text style={styles.radioText}>Vertical </Text>
+                </View>
+              </View>
+
+              {/* <RadioButton.Group
                 onValueChange={onRadioClicked}
                 value={videoOrientation}
               >
                 <RadioButton.Item
                   style={{ flexDirection: "row-reverse" }}
-                  color="#00bbff"
+                  color='#00bbff'
                   labelStyle={{ color: "white" }}
-                  label="Horizontal Orientation"
-                  value="HORIZONTAL"
+                  label='Horizontal Orientation'
+                  value='HORIZONTAL'
                 />
                 <RadioButton.Item
                   style={{ flexDirection: "row-reverse" }}
-                  color="#00bbff"
+                  color='#00bbff'
                   labelStyle={{ color: "white" }}
-                  label="Vertical Orientation"
-                  value="VERTICAL"
+                  label='Vertical Orientation'
+                  value='VERTICAL'
                 />
-              </RadioButton.Group>
-            </View> */}
+              </RadioButton.Group> */}
+            </View>
           </View>
         </View>
         <View style={styles.bottomButtonGroup}>
@@ -250,6 +285,28 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: "#152034",
+  },
+  radioBtn: {
+    width: 15,
+    height: 15,
+    borderRadius: 8,
+    padding: 1,
+    borderWidth: 0.8,
+    borderColor: "white",
+    marginVertical: 11,
+    backgroundColor: "#00bbff",
+    flexDirection: "row",
+  },
+  radioContainer: {
+    flexDirection: "row",
+    width: "90%",
+    alignItems: "center",
+  },
+  radioText: {
+    color: "white",
+    fontSize: 18,
+    marginLeft: 10,
+    fontWeight: "bold",
   },
   header: {
     width: "100%",
